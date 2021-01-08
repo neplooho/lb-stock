@@ -1,3 +1,7 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+
 from flask import Flask, Response, redirect, request
 from sqlite3 import Error
 import sqlite3
@@ -17,10 +21,12 @@ def get_session(conn, chat_id):
     cur = conn.cursor()
     cur.execute("SELECT * FROM stock_sessions WHERE chat_id = {};".format(chat_id))
     row = cur.fetchone()
-
-    return {'chat_id': row[0], 'title': row[1], 'hashtags': row[2],
-            'price': row[3], 'description': row[4], 'images': row[5],
-            'step': row[6]}
+    if row is not None:
+        return {'chat_id': row[0], 'title': row[1], 'hashtags': row[2],
+                'price': row[3], 'description': row[4], 'images': row[5],
+                'step': row[6]}
+    else:
+        return None
 
 
 def create_session(conn, chat_id):
@@ -59,7 +65,7 @@ def ask_for_images(conn, chat_id):
 
 
 def build_telegraph_and_return_link(conn, chat_id):
-    print(get_session(conn, chat_id)) #TODO
+    print(get_session(conn, chat_id))  # TODO
 
 
 def send_available_options(chat_id):
@@ -107,7 +113,7 @@ options = {'/title': (ask_for_title, set_title),
            '/help': send_available_options}
 
 app = Flask(__name__)
-BOT_URL = 'https://api.telegram.org/bot{0}/'.format(open('bot_token', 'r').read())
+BOT_URL = 'https://api.telegram.org/bot{0}/'.format(open('secrets/bot_token', 'r').read())
 database_path = r"database/db.sqlite"
 
 
@@ -140,12 +146,12 @@ def main():
     session = get_session(conn, chat_id)
     if session is None:
         send_message(chat_id, 'Чтобы создать новое объявление отправь /new')
-        return
+        return Response('Duck says meow')
     if session['step'] == '/new':
         send_message(chat_id, """Выбери одну из предложеных команд:
         /title /hashtags /price /description /images
         /finish /help""")
-        return
+        return Response('Duck says meow')
     if text in options:
         if text == '/help':
             send_available_options(chat_id)
@@ -156,3 +162,8 @@ def main():
         options[session['step']][1](conn, chat_id, text)
     else:
         send_message(chat_id, "Я не знаю такой команды как {}".format(text))
+    return Response('Duck says meow')
+
+
+if __name__ == '__main__':
+    app.run(ssl_context=('secrets/public.pem', 'secrets/private.key'), host='0.0.0.0', port=8443)
