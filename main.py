@@ -113,7 +113,7 @@ options = {'/title': (ask_for_title, set_title),
            '/help': send_available_options}
 
 app = Flask(__name__)
-BOT_URL = 'https://api.telegram.org/bot{0}/'.format(open('secrets/bot_token', 'r').read())
+BOT_URL = 'https://api.telegram.org/bot{0}/'.format(open('secrets/bot_token', 'r').read()[:-1])
 database_path = r"database/db.sqlite"
 
 
