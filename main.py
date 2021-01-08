@@ -136,7 +136,9 @@ def before_request():
 
 @app.route('/', methods=['POST'])
 def main():
+    print("got message")
     conn = create_connection(database_path)
+    print("got connection")
     data = request.get_json()
     chat_id = data['message']['chat']['id']
     text = data['message']['text']
