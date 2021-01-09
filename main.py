@@ -136,9 +136,7 @@ def before_request():
 
 @app.route('/', methods=['POST'])
 def main():
-    print("got message")
     conn = create_connection(database_path)
-    print("got connection")
     data = request.get_json()
     chat_id = int(data['message']['chat']['id'])
     text = data['message']['text']
@@ -148,11 +146,13 @@ def main():
     session = get_session(conn, chat_id)
     if session is None:
         send_message(chat_id, 'Чтобы создать новое объявление отправь /new')
+        conn.close()
         return Response('Duck says meow')
     if session['step'] == '/new':
         send_message(chat_id, """Выбери одну из предложеных команд:
         /title /hashtags /price /description /images
         /finish /help""")
+        conn.close()
         return Response('Duck says meow')
     if text in options:
         if text == '/help':
@@ -164,6 +164,7 @@ def main():
         options[session['step']][1](conn, chat_id, text)
     else:
         send_message(chat_id, "Я не знаю такой команды как {}".format(text))
+    conn.close()
     return Response('Duck says meow')
 
 
