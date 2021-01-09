@@ -86,12 +86,12 @@ def send_available_options(chat_id):
 
 def set_title(conn, chat_id, title):
     cur = conn.cursor()
-    cur.execute("UPDATE stock_sessions SET title = {} WHERE chat_id = {}".format(title, chat_id))
+    cur.execute("UPDATE stock_sessions SET title = '{}' WHERE chat_id = {}".format(title, chat_id))
 
 
 def set_hashtags(conn, chat_id, hashtags):
     cur = conn.cursor()
-    cur.execute("UPDATE stock_sessions SET hashtags = {} WHERE chat_id = {}".format(hashtags, chat_id))
+    cur.execute("UPDATE stock_sessions SET hashtags = '{}' WHERE chat_id = {}".format(hashtags, chat_id))
 
 
 def set_price(conn, chat_id, price):
@@ -101,7 +101,7 @@ def set_price(conn, chat_id, price):
 
 def set_description(conn, chat_id, description):
     cur = conn.cursor()
-    cur.execute("UPDATE stock_sessions SET description = {} WHERE chat_id = {}".format(description, chat_id))
+    cur.execute("UPDATE stock_sessions SET description = '{}' WHERE chat_id = {}".format(description, chat_id))
 
 
 def set_images(conn, chat_id, images):
@@ -153,13 +153,13 @@ def main():
         conn.commit()
         conn.close()
         return Response('Duck says meow')
-    if session['step'] == '/new':
-        send_message(chat_id, """Выбери одну из предложеных команд:
-        /title /hashtags /price /description /images
-        /finish /help""")
-        conn.commit()
-        conn.close()
-        return Response('Duck says meow')
+    # if session['step'] == '/new':
+    #     send_message(chat_id, """Выбери одну из предложеных команд:
+    #     /title /hashtags /price /description /images
+    #     /finish /help""")
+    #     conn.commit()
+    #     conn.close()
+    #     return Response('Duck says meow')
     if text in options:
         if text == '/help':
             send_available_options(chat_id)
