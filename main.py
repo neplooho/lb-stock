@@ -143,7 +143,7 @@ def main():
     conn = create_connection(database_path)
     data = request.get_json()
     chat_id = int(data['message']['chat']['id'])
-    text = data['message']['text']
+    text = data['message']['text'].encode('utf-8') #should fix UnicodeEncodeError
     if text == '/new':
         create_session(conn, chat_id)
         send_message(chat_id, "Отправь /help чтобы посмотреть список доступных команд")
