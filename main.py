@@ -19,11 +19,8 @@ def create_connection(db_file):
 
 def get_session(conn, chat_id):
     cur = conn.cursor()
-    query = "SELECT * FROM stock_sessions WHERE chat_id = {};".format(chat_id)
-    cur.execute(query)
-    print(query)
+    cur.execute("SELECT * FROM stock_sessions WHERE chat_id = {};".format(chat_id))
     row = cur.fetchone()
-    print(cur.execute("SELECT * FROM stock_sessions;").fetchone())
     cur.close()
     if row is not None:
         return {'chat_id': row[0], 'title': row[1], 'hashtags': row[2],
@@ -69,7 +66,8 @@ def ask_for_images(conn, chat_id):
 
 
 def build_telegraph_and_return_link(conn, chat_id):
-    print(get_session(conn, chat_id))  # TODO
+    send_message(chat_id, ','.join(get_session(conn, chat_id)))
+    # print(get_session(conn, chat_id))  # TODO
 
 
 def send_available_options(chat_id):
@@ -153,13 +151,6 @@ def main():
         conn.commit()
         conn.close()
         return Response('Duck says meow')
-    # if session['step'] == '/new':
-    #     send_message(chat_id, """Выбери одну из предложеных команд:
-    #     /title /hashtags /price /description /images
-    #     /finish /help""")
-    #     conn.commit()
-    #     conn.close()
-    #     return Response('Duck says meow')
     if text in options:
         if text == '/help':
             send_available_options(chat_id)
@@ -168,6 +159,7 @@ def main():
             options[text][0](conn, chat_id)
     elif session['step'] != '/new':
         options[session['step']][1](conn, chat_id, text)
+        send_message(chat_id, "Отлично, что дальше?")
     else:
         send_message(chat_id, "Я не знаю такой команды как {}".format(text))
         conn.commit()
