@@ -171,6 +171,7 @@ def main():
     else:
         send_message(chat_id, "Я не знаю такой команды как {}".format(text))
         conn.commit()
+    conn.commit()
     conn.close()
     return Response('Duck says meow')
 
