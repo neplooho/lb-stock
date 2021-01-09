@@ -19,8 +19,12 @@ def create_connection(db_file):
 
 def get_session(conn, chat_id):
     cur = conn.cursor()
-    cur.execute("SELECT * FROM stock_sessions WHERE chat_id = {};".format(chat_id))
+    query = "SELECT * FROM stock_sessions WHERE chat_id = {};".format(chat_id)
+    cur.execute(query)
+    print(query)
     row = cur.fetchone()
+    print(cur.execute("SELECT * FROM stock_sessions;").fetchone())
+    cur.close()
     if row is not None:
         return {'chat_id': row[0], 'title': row[1], 'hashtags': row[2],
                 'price': row[3], 'description': row[4], 'images': row[5],
