@@ -40,7 +40,7 @@ def create_session(conn, chat_id):
 
 def update_session_step(conn, chat_id, step):
     cur = conn.cursor()
-    cur.execute("UPDATE stock_sessions SET step = {} WHERE chat_id = {};".format(step, chat_id))
+    cur.execute("UPDATE stock_sessions SET step = '{}' WHERE chat_id = {};".format(step, chat_id))
 
 
 def ask_for_title(conn, chat_id):
