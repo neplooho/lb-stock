@@ -140,7 +140,7 @@ def main():
     conn = create_connection(database_path)
     print("got connection")
     data = request.get_json()
-    chat_id = data['message']['chat']['id']
+    chat_id = int(data['message']['chat']['id'])
     text = data['message']['text']
     if text == '/new':
         create_session(conn, chat_id)
