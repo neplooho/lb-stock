@@ -6,6 +6,7 @@ from flask import Flask, Response, redirect, request
 from sqlite3 import Error
 import sqlite3
 import requests
+import json
 
 
 def create_connection(db_file):
@@ -66,7 +67,7 @@ def ask_for_images(conn, chat_id):
 
 
 def build_telegraph_and_return_link(conn, chat_id):
-    send_message(chat_id, ','.join(get_session(conn, chat_id)))
+    send_message(chat_id, json.dumps(get_session(conn, chat_id)))
     # print(get_session(conn, chat_id))  # TODO
 
 
@@ -111,7 +112,7 @@ options = {'/title': (ask_for_title, set_title),
            '/price': (ask_for_price, set_price),
            '/description': (ask_for_description, set_description),
            '/images': (ask_for_images, set_images),
-           '/finish': build_telegraph_and_return_link,
+           '/finish': (build_telegraph_and_return_link, None), #some crutches here, nvm
            '/help': send_available_options}
 
 app = Flask(__name__)
