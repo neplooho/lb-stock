@@ -35,10 +35,10 @@ def get_session(conn, chat_id):
 
 
 def format_session_to_text(session):
-    return 'Chat: ' + str(session['chat_id']) + ' \n Title: ' + session[
-        'title'] or u'None' + ' \n Hashtags: ' + session['hashtags'] or u'None' + ' \n Price: ' + str(
-        session['price']) + ' \n Description: ' + \
-           session['description'] or u'None' + ' \n Images: [len] \n Step: ' + session['step'] or u'None'
+    return 'Chat: ' + str(session['chat_id']) + ' \nTitle: ' + session[
+        'title'] or u'None' + ' \nHashtags: ' + session['hashtags'] or u'None' + ' \nPrice: ' + str(
+        session['price']) + ' \nDescription: ' + \
+           session['description'] or u'None' + ' \nImages: [len] \nStep: ' + session['step'] or u'None'
 
 
 def create_session(conn, chat_id):
@@ -94,22 +94,22 @@ def send_available_options(chat_id):
 
 def set_title(conn, chat_id, title):
     cur = conn.cursor()
-    cur.execute("UPDATE stock_sessions SET title = '{}' WHERE chat_id = {}".format(title, chat_id))
+    cur.execute("UPDATE stock_sessions SET title = " + title + " WHERE chat_id = " + str(chat_id))
 
 
 def set_hashtags(conn, chat_id, hashtags):
     cur = conn.cursor()
-    cur.execute("UPDATE stock_sessions SET hashtags = '{}' WHERE chat_id = {}".format(hashtags, chat_id))
+    cur.execute("UPDATE stock_sessions SET hashtags = " + hashtags + " WHERE chat_id = " + str(chat_id))
 
 
 def set_price(conn, chat_id, price):
     cur = conn.cursor()
-    cur.execute("UPDATE stock_sessions SET price = {} WHERE chat_id = {}".format(price, chat_id))
+    cur.execute("UPDATE stock_sessions SET price = " + price + " WHERE chat_id = " + str(chat_id))
 
 
 def set_description(conn, chat_id, description):
     cur = conn.cursor()
-    cur.execute("UPDATE stock_sessions SET description = '{}' WHERE chat_id = {}".format(description, chat_id))
+    cur.execute("UPDATE stock_sessions SET description = " + description + " WHERE chat_id = " + str(chat_id))
 
 
 def set_images(conn, chat_id, images):
