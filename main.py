@@ -94,7 +94,6 @@ def send_available_options(chat_id):
 
 def set_title(conn, chat_id, title):
     cur = conn.cursor()
-    cur.execute()
     cur.execute("UPDATE stock_sessions SET title = '{}' WHERE chat_id = {}".format(title, chat_id))
 
 
