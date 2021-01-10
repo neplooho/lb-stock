@@ -119,7 +119,9 @@ def set_description(conn, chat_id, description):
 
 def add_image(conn, chat_id, file_path):
     cur = conn.cursor()
-    cur.execute("INSERT OR REPLACE INTO images (image_path, chat_id) VALUES('" + file_path + "', " + str(chat_id) + ");")
+    query = "INSERT OR REPLACE INTO images (image_path, chat_id) VALUES ('" + file_path + "', " + str(chat_id) + ");"
+    print(query)
+    cur.execute(query)
 
 
 options = {'/title': (ask_for_title, set_title),
