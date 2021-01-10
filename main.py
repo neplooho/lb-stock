@@ -6,6 +6,7 @@ from flask import Flask, Response, redirect, request
 from sqlite3 import Error
 import sqlite3
 import requests
+import tarfile
 
 
 def create_connection(db_file):
@@ -37,7 +38,7 @@ def get_session(conn, chat_id):
 def format_session_to_text(session):
     return 'Chat: ' + str(session['chat_id']) + ' \nTitle: ' + (session[
                                                                     'title'] or u'None') + ' \nHashtags: ' + (
-                       session['hashtags'] or u'None') + ' \nPrice: ' + str(
+                   session['hashtags'] or u'None') + ' \nPrice: ' + str(
         session['price']) + ' \nDescription: ' + \
            (session['description'] or u'None') + ' \nImages: [len] \nStep: ' + (session['step'] or u'None')
 
@@ -113,20 +114,32 @@ def set_description(conn, chat_id, description):
     cur.execute("UPDATE stock_sessions SET description = '" + description + "' WHERE chat_id = " + str(chat_id))
 
 
-def set_images(conn, chat_id, images):
-    pass
+def add_image(conn, chat_id, bytes, file_name):
+    cur = conn.cursor()
+    cur.execute("SELECT images from stock_sessions WHERE chat_id = " + str(chat_id))
+    row = cur.fetchone()
+    if row[0] is None:
+        #create archive, add bytes to it, save
+        tar = tarfile.TarFile('out.tar.gz', "w:gz")
+        info = tarfile.TarInfo(name=file_name)
+        tar.addfile(tarinfo=info, fileobj=bytes)
+        pass
+    else:
+        #read archive, add bytes to it, save
+        pass
 
 
 options = {'/title': (ask_for_title, set_title),
            '/hashtags': (ask_for_hashtags, set_hashtags),
            '/price': (ask_for_price, set_price),
            '/description': (ask_for_description, set_description),
-           '/images': (ask_for_images, set_images),
+           '/images': (ask_for_images, add_image),
            '/finish': (build_telegraph_and_return_link, None),  # some crutches here, nvm
            '/help': send_available_options}
 
 app = Flask(__name__)
 BOT_URL = 'https://api.telegram.org/bot{0}/'.format(open('secrets/bot_token', 'r').read()[:-1])
+FILE_URL = 'https://api.telegram.org/file/bot{0}/'.format(open('secrets/bot_token', 'r').read()[:-1])
 database_path = r"database/db.sqlite"
 
 
@@ -155,9 +168,10 @@ def main():
     session = get_session(conn, chat_id)
     if session['step'] == '/images' and 'document' in data['message']:
         file_id = data['message']['document']['file_id']
-        # files = [x['file_id'] for x in data['message']['photo']]
-        # for i in files:
-        print(file_id)
+        file_path = requests.get(BOT_URL + 'getFile?=' + file_id).json()['result']['file_path']
+        image_bytes = requests.get(FILE_URL + file_path).content
+        add_image(conn, chat_id, image_bytes, str(file_path).split('/')[1])
+        send_message(chat_id, "Картинка добавлена")
         return Response('Duck says meow')
     text = data['message']['text']
     if text == '/new':
