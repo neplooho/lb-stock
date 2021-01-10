@@ -152,28 +152,24 @@ def main():
     conn = create_connection(database_path)
     data = request.get_json()
     chat_id = int(data['message']['chat']['id'])
+    session = get_session(conn, chat_id)
     text = data['message']['text']
-    if text == '/new':
+    if session['step'] == '/images':
+        files = [x['file_id'] for x in data['message']['photo']]
+        print(files)
+    elif text == '/new':
         create_session(conn, chat_id)
         send_message(chat_id, "Отправь /help чтобы посмотреть список доступных команд")
-        conn.commit()
-        conn.close()
-        return Response('Duck says meow')
-    session = get_session(conn, chat_id)
-    if session is None:
         send_message(chat_id, 'Чтобы создать новое объявление отправь /new')
         conn.commit()
         conn.close()
         return Response('Duck says meow')
-    if text in options:
+    elif text in options:
         if text == '/help':
             send_available_options(chat_id)
         else:
             update_session_step(conn, chat_id, step=text)
             options[text][0](conn, chat_id)
-    elif session['step'] == '/images':
-        files = [x['file_id'] for x in data['message']['photo']]
-        print(files)
     elif session['step'] != '/new':
         options[session['step']][1](conn, chat_id, text)
         send_message(chat_id, "Отлично, что дальше?")
