@@ -35,8 +35,8 @@ def get_session(conn, chat_id):
 
 
 def format_session_to_text(session):
-    return 'Chat: ' + session['chat_id'] + ' \n Title: ' + session[
-        'title'] + ' \n Hashtags: ' + session['hashtags'] + ' \n Price: ' + session['price'] + ' \n Description: ' + \
+    return 'Chat: ' + str(session['chat_id']) + ' \n Title: ' + session[
+        'title'] + ' \n Hashtags: ' + session['hashtags'] + ' \n Price: ' + str(session['price']) + ' \n Description: ' + \
            session['description'] + ' \n Images: [len] \n Step: ' + session['step']
 
 
