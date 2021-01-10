@@ -42,8 +42,8 @@ def format_session_to_text(session):
                                                                     'title'] or u'None') + ' \nHashtags: ' + (
                    session['hashtags'] or u'None') + ' \nPrice: ' + str(
         session['price']) + ' \nDescription: ' + \
-           (session['description'] or u'None') + ' \nImages: ' + session['images'] + ' \nStep: ' + (
-                       session['step'] or u'None')
+           (session['description'] or u'None') + ' \nImages: ' + ','.join(session['images']) + ' \nStep: ' + (
+                   session['step'] or u'None')
 
 
 def create_session(conn, chat_id):
@@ -158,8 +158,7 @@ def main():
     conn = create_connection(database_path)
     data = request.get_json()
     chat_id = int(data['message']['chat']['id'])
-    text = data['message']['text']
-    if text == '/new':
+    if 'text' in data['message'] and data['message']['text'] == '/new':
         create_session(conn, chat_id)
         send_message(chat_id, "Отправь /help чтобы посмотреть список доступных команд")
         send_message(chat_id, 'Чтобы создать новое объявление отправь /new')
@@ -173,6 +172,7 @@ def main():
         add_image(conn, chat_id, file_path)
         send_message(chat_id, "Картинка добавлена")
         return Response('Duck says meow')
+    text = data['message']['text']
     if text in options:
         if text == '/help':
             send_available_options(chat_id)
