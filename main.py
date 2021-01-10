@@ -153,10 +153,11 @@ def main():
     data = request.get_json()
     chat_id = int(data['message']['chat']['id'])
     session = get_session(conn, chat_id)
-    if session['step'] == '/images' and 'photo' in data['message']:
-        files = [x['file_id'] for x in data['message']['photo']]
-        for i in files:
-            print(i)
+    if session['step'] == '/images' and 'document' in data['message']:
+        file_id = data['message']['document']['file_id']
+        # files = [x['file_id'] for x in data['message']['photo']]
+        # for i in files:
+        print(file_id)
         return Response('Duck says meow')
     text = data['message']['text']
     if text == '/new':
