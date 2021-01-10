@@ -146,7 +146,7 @@ def main():
     conn = create_connection(database_path)
     data = request.get_json()
     chat_id = int(data['message']['chat']['id'])
-    text = data['message']['text'].encode('utf-8') #should fix UnicodeEncodeError
+    text = data['message']['text']#.encode('utf-8') #should fix UnicodeEncodeError
     if text == '/new':
         create_session(conn, chat_id)
         send_message(chat_id, "Отправь /help чтобы посмотреть список доступных команд")
@@ -163,7 +163,7 @@ def main():
             update_session_step(conn, chat_id, step=text)
             options[text][0](conn, chat_id)
     elif session['step'] != '/new':
-        options[session['step']][1](conn, chat_id, text)
+        options[session['step']][1](conn, chat_id, text.encode('utf-8'))
         send_message(chat_id, "Отлично, что дальше?")
     else:
         send_message(chat_id, "Я не знаю такой команды как {}".format(text))
