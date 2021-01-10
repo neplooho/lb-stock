@@ -22,6 +22,8 @@ def get_session(conn, chat_id):
     cur = conn.cursor()
     cur.execute("SELECT * FROM stock_sessions WHERE chat_id = {};".format(chat_id))
     row = cur.fetchone()
+    cur.execute("SELECT image_path FROM images WHERE chat_id = {};".format(chat_id))
+    images = [x[0] for x in cur.fetchall()]
     cur.close()
     if row is not None:
         return {'chat_id': row[0],
@@ -29,8 +31,8 @@ def get_session(conn, chat_id):
                 'hashtags': row[2],
                 'price': row[3],
                 'description': row[4],
-                'images': row[5],
-                'step': row[6]}
+                'step': row[5],
+                'images': images}
     else:
         return None
 
@@ -40,7 +42,8 @@ def format_session_to_text(session):
                                                                     'title'] or u'None') + ' \nHashtags: ' + (
                    session['hashtags'] or u'None') + ' \nPrice: ' + str(
         session['price']) + ' \nDescription: ' + \
-           (session['description'] or u'None') + ' \nImages: [len] \nStep: ' + (session['step'] or u'None')
+           (session['description'] or u'None') + ' \nImages: ' + session['images'] + ' \nStep: ' + (
+                       session['step'] or u'None')
 
 
 def create_session(conn, chat_id):
@@ -74,7 +77,7 @@ def ask_for_description(conn, chat_id):
 
 
 def ask_for_images(conn, chat_id):
-    send_message(chat_id, "Отправьте в одном сообщении картинки для вашего объявления")
+    send_message(chat_id, "Отправьте картинки файлами")
     update_session_step(conn, chat_id, '/images')
 
 
@@ -90,7 +93,7 @@ def send_available_options(chat_id):
 /hashtags - Добавить хештеги
 /price - Указать цену
 /description - Добавить описание
-/images - Добавить картинки (в одном сообщении)
+/images - Добавить картинки
 /finish - Отправить объявление на рассмотрение""")
 
 
@@ -114,19 +117,9 @@ def set_description(conn, chat_id, description):
     cur.execute("UPDATE stock_sessions SET description = '" + description + "' WHERE chat_id = " + str(chat_id))
 
 
-def add_image(conn, chat_id, bytes, file_name):
+def add_image(conn, chat_id, file_path, file_name):
     cur = conn.cursor()
-    cur.execute("SELECT images from stock_sessions WHERE chat_id = " + str(chat_id))
-    row = cur.fetchone()
-    if row[0] is None:
-        #create archive, add bytes to it, save
-        tar = tarfile.TarFile('out.tar.gz', "w:gz")
-        info = tarfile.TarInfo(name=file_name)
-        tar.addfile(tarinfo=info, fileobj=bytes)
-        pass
-    else:
-        #read archive, add bytes to it, save
-        pass
+    cur.execute("INSERT OR REPLACE INTO images (image_path, chat_id) VALUES('" + file_path + "', " + chat_id + ");")
 
 
 options = {'/title': (ask_for_title, set_title),
@@ -169,8 +162,7 @@ def main():
     if session['step'] == '/images' and 'document' in data['message']:
         file_id = data['message']['document']['file_id']
         file_path = requests.get(BOT_URL + 'getFile?file_id=' + file_id).json()['result']['file_path']
-        image_bytes = requests.get(FILE_URL + file_path).content
-        add_image(conn, chat_id, image_bytes, str(file_path).split('/')[1])
+        add_image(conn, chat_id, file_path)
         send_message(chat_id, "Картинка добавлена")
         return Response('Duck says meow')
     text = data['message']['text']
