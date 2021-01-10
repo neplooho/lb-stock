@@ -158,13 +158,6 @@ def main():
     conn = create_connection(database_path)
     data = request.get_json()
     chat_id = int(data['message']['chat']['id'])
-    session = get_session(conn, chat_id)
-    if session['step'] == '/images' and 'document' in data['message']:
-        file_id = data['message']['document']['file_id']
-        file_path = requests.get(BOT_URL + 'getFile?file_id=' + file_id).json()['result']['file_path']
-        add_image(conn, chat_id, file_path)
-        send_message(chat_id, "Картинка добавлена")
-        return Response('Duck says meow')
     text = data['message']['text']
     if text == '/new':
         create_session(conn, chat_id)
@@ -173,7 +166,14 @@ def main():
         conn.commit()
         conn.close()
         return Response('Duck says meow')
-    elif text in options:
+    session = get_session(conn, chat_id)
+    if session['step'] == '/images' and 'document' in data['message']:
+        file_id = data['message']['document']['file_id']
+        file_path = requests.get(BOT_URL + 'getFile?file_id=' + file_id).json()['result']['file_path']
+        add_image(conn, chat_id, file_path)
+        send_message(chat_id, "Картинка добавлена")
+        return Response('Duck says meow')
+    if text in options:
         if text == '/help':
             send_available_options(chat_id)
         else:
