@@ -6,7 +6,6 @@ from flask import Flask, Response, redirect, request
 from sqlite3 import Error
 import sqlite3
 import requests
-import json
 
 
 def create_connection(db_file):
@@ -36,9 +35,9 @@ def get_session(conn, chat_id):
 
 
 def format_session_to_text(session):
-    return 'Chat: {} \n Title: {} \n Hashtags: {} \n Price: {} \n Description: {} \n Images: [len] \n Step: {}'.format(
-        session['chat_id'], session['title'], session['hashtags'], session['price'], session['description'],
-        session['step'])
+    return 'Chat: ' + session['chat_id'] + ' \n Title: ' + session[
+        'title'] + ' \n Hashtags: ' + session['hashtags'] + ' \n Price: ' + session['price'] + ' \n Description: ' + \
+           session['description'] + ' \n Images: [len] \n Step: ' + session['step']
 
 
 def create_session(conn, chat_id):
