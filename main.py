@@ -156,6 +156,9 @@ def main():
     if text == '/new':
         create_session(conn, chat_id)
         send_message(chat_id, "Отправь /help чтобы посмотреть список доступных команд")
+        conn.commit()
+        conn.close()
+        return Response('Duck says meow')
     session = get_session(conn, chat_id)
     if session is None:
         send_message(chat_id, 'Чтобы создать новое объявление отправь /new')
