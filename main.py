@@ -168,7 +168,7 @@ def main():
     session = get_session(conn, chat_id)
     if session['step'] == '/images' and 'document' in data['message']:
         file_id = data['message']['document']['file_id']
-        file_path = requests.get(BOT_URL + 'getFile?=' + file_id).json()['result']['file_path']
+        file_path = requests.get(BOT_URL + 'getFile?file_id=' + file_id).json()['result']['file_path']
         image_bytes = requests.get(FILE_URL + file_path).content
         add_image(conn, chat_id, image_bytes, str(file_path).split('/')[1])
         send_message(chat_id, "Картинка добавлена")
