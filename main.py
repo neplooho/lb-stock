@@ -24,8 +24,12 @@ def get_session(conn, chat_id):
     row = cur.fetchone()
     cur.close()
     if row is not None:
-        return {'chat_id': row[0], 'title': row[1].encode('ascii', 'ignore'), 'hashtags': row[2].encode('ascii', 'ignore'),
-                'price': row[3], 'description': row[4].encode('ascii', 'ignore'), 'images': row[5],
+        return {'chat_id': row[0],
+                'title': row[1].encode('ascii', 'ignore') if row[1] is not None else None,
+                'hashtags': row[2].encode('ascii', 'ignore') if row[2] is not None else None,
+                'price': row[3],
+                'description': row[4].encode('ascii', 'ignore') if row[4] is not None else None,
+                'images': row[5],
                 'step': row[6]}
     else:
         return None
