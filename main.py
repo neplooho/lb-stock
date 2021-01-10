@@ -94,12 +94,12 @@ def send_available_options(chat_id):
 
 def set_title(conn, chat_id, title):
     cur = conn.cursor()
-    cur.execute("UPDATE stock_sessions SET title = " + title + " WHERE chat_id = " + str(chat_id))
+    cur.execute("UPDATE stock_sessions SET title = '" + title + "' WHERE chat_id = " + str(chat_id))
 
 
 def set_hashtags(conn, chat_id, hashtags):
     cur = conn.cursor()
-    cur.execute("UPDATE stock_sessions SET hashtags = " + hashtags + " WHERE chat_id = " + str(chat_id))
+    cur.execute("UPDATE stock_sessions SET hashtags = '" + hashtags + "' WHERE chat_id = " + str(chat_id))
 
 
 def set_price(conn, chat_id, price):
@@ -109,7 +109,7 @@ def set_price(conn, chat_id, price):
 
 def set_description(conn, chat_id, description):
     cur = conn.cursor()
-    cur.execute("UPDATE stock_sessions SET description = " + description + " WHERE chat_id = " + str(chat_id))
+    cur.execute("UPDATE stock_sessions SET description = '" + description + "' WHERE chat_id = " + str(chat_id))
 
 
 def set_images(conn, chat_id, images):
