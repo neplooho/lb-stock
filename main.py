@@ -119,9 +119,8 @@ def set_description(conn, chat_id, description):
 
 def add_image(conn, chat_id, file_path):
     cur = conn.cursor()
-    query = "INSERT OR REPLACE INTO images (image_path, chat_id) VALUES ('" + file_path + "', " + str(chat_id) + ");"
-    print(query)
-    cur.execute(query)
+    cur.execute(
+        "INSERT OR REPLACE INTO images (image_path, chat_id) VALUES ('" + file_path + "', " + str(chat_id) + ");")
 
 
 options = {'/title': (ask_for_title, set_title),
@@ -172,6 +171,8 @@ def main():
         file_id = data['message']['document']['file_id']
         file_path = requests.get(BOT_URL + 'getFile?file_id=' + file_id).json()['result']['file_path']
         add_image(conn, chat_id, file_path)
+        conn.commit()
+        conn.close()
         send_message(chat_id, "Картинка добавлена")
         return Response('Duck says meow')
     text = data['message']['text']
