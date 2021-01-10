@@ -25,14 +25,20 @@ def get_session(conn, chat_id):
     cur.close()
     if row is not None:
         return {'chat_id': row[0],
-                'title': row[1].encode('ascii', 'ignore') if row[1] is not None else None,
-                'hashtags': row[2].encode('ascii', 'ignore') if row[2] is not None else None,
+                'title': row[1],
+                'hashtags': row[2],
                 'price': row[3],
-                'description': row[4].encode('ascii', 'ignore') if row[4] is not None else None,
+                'description': row[4],
                 'images': row[5],
                 'step': row[6]}
     else:
         return None
+
+
+def format_session_to_text(session):
+    return 'Chat: {} \n Title: {} \n Hashtags: {} \n Price: {} \n Description: {} \n Images: [len] \n Step: {}'.format(
+        session['chat_id'], session['title'], session['hashtags'], session['price'], session['description'],
+        session['step'])
 
 
 def create_session(conn, chat_id):
@@ -71,8 +77,7 @@ def ask_for_images(conn, chat_id):
 
 
 def build_telegraph_and_return_link(conn, chat_id):
-    send_message(chat_id, json.dumps(get_session(conn, chat_id)))
-    # print(get_session(conn, chat_id))  # TODO
+    send_message(chat_id, format_session_to_text(get_session(conn, chat_id)))
 
 
 def send_available_options(chat_id):
@@ -89,6 +94,7 @@ def send_available_options(chat_id):
 
 def set_title(conn, chat_id, title):
     cur = conn.cursor()
+    cur.execute()
     cur.execute("UPDATE stock_sessions SET title = '{}' WHERE chat_id = {}".format(title, chat_id))
 
 
@@ -116,7 +122,7 @@ options = {'/title': (ask_for_title, set_title),
            '/price': (ask_for_price, set_price),
            '/description': (ask_for_description, set_description),
            '/images': (ask_for_images, set_images),
-           '/finish': (build_telegraph_and_return_link, None), #some crutches here, nvm
+           '/finish': (build_telegraph_and_return_link, None),  # some crutches here, nvm
            '/help': send_available_options}
 
 app = Flask(__name__)
@@ -146,7 +152,7 @@ def main():
     conn = create_connection(database_path)
     data = request.get_json()
     chat_id = int(data['message']['chat']['id'])
-    text = data['message']['text']#.encode('utf-8') #should fix UnicodeEncodeError
+    text = data['message']['text']
     if text == '/new':
         create_session(conn, chat_id)
         send_message(chat_id, "Отправь /help чтобы посмотреть список доступных команд")
@@ -163,7 +169,7 @@ def main():
             update_session_step(conn, chat_id, step=text)
             options[text][0](conn, chat_id)
     elif session['step'] != '/new':
-        options[session['step']][1](conn, chat_id, text.encode('utf-8'))
+        options[session['step']][1](conn, chat_id, text)
         send_message(chat_id, "Отлично, что дальше?")
     else:
         send_message(chat_id, "Я не знаю такой команды как {}".format(text))
