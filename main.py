@@ -35,10 +35,11 @@ def get_session(conn, chat_id):
 
 
 def format_session_to_text(session):
-    return 'Chat: ' + str(session['chat_id']) + ' \nTitle: ' + session[
-        'title'] or u'None' + ' \nHashtags: ' + session['hashtags'] or u'None' + ' \nPrice: ' + str(
+    return 'Chat: ' + str(session['chat_id']) + ' \nTitle: ' + (session[
+                                                                    'title'] or u'None') + ' \nHashtags: ' + (
+                       session['hashtags'] or u'None') + ' \nPrice: ' + str(
         session['price']) + ' \nDescription: ' + \
-           session['description'] or u'None' + ' \nImages: [len] \nStep: ' + session['step'] or u'None'
+           (session['description'] or u'None') + ' \nImages: [len] \nStep: ' + (session['step'] or u'None')
 
 
 def create_session(conn, chat_id):
