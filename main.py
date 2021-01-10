@@ -153,11 +153,12 @@ def main():
     data = request.get_json()
     chat_id = int(data['message']['chat']['id'])
     session = get_session(conn, chat_id)
-    text = data['message']['text']
     if session['step'] == '/images':
         files = [x['file_id'] for x in data['message']['photo']]
         print(files)
-    elif text == '/new':
+        return Response('Duck says meow')
+    text = data['message']['text']
+    if text == '/new':
         create_session(conn, chat_id)
         send_message(chat_id, "Отправь /help чтобы посмотреть список доступных команд")
         send_message(chat_id, 'Чтобы создать новое объявление отправь /new')
