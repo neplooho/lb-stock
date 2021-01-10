@@ -117,7 +117,7 @@ def set_description(conn, chat_id, description):
     cur.execute("UPDATE stock_sessions SET description = '" + description + "' WHERE chat_id = " + str(chat_id))
 
 
-def add_image(conn, chat_id, file_path, file_name):
+def add_image(conn, chat_id, file_path):
     cur = conn.cursor()
     cur.execute("INSERT OR REPLACE INTO images (image_path, chat_id) VALUES('" + file_path + "', " + chat_id + ");")
 
