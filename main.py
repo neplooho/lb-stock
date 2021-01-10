@@ -171,6 +171,9 @@ def main():
         else:
             update_session_step(conn, chat_id, step=text)
             options[text][0](conn, chat_id)
+    elif session['step'] == '/images':
+        files = [x['file_id'] for x in data['message']['photo']]
+        print(files)
     elif session['step'] != '/new':
         options[session['step']][1](conn, chat_id, text)
         send_message(chat_id, "Отлично, что дальше?")
