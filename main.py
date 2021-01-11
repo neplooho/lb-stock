@@ -14,7 +14,7 @@ app = Flask(__name__)
 BOT_URL = 'https://api.telegram.org/bot{0}/'.format(open('secrets/bot_token', 'r').read()[:-1])
 FILE_URL = 'https://api.telegram.org/file/bot{0}/'.format(open('secrets/bot_token', 'r').read()[:-1])
 database_path = r"database/db.sqlite"
-
+possible_hashtags = set("#лбкиїв_компліт #лбкиїв_підвіси #лбкиїв_колеса #лбкиїв_дека #лбкиїв_інше #лбкиїв_захист".split(' '))
 
 def create_connection(db_file):
     conn = None
@@ -76,7 +76,7 @@ def ask_for_title(conn, chat_id):
 
 
 def ask_for_hashtags(conn, chat_id):
-    send_message(chat_id, "Отправьте в одном сообщении хештеги через пробел")
+    send_message(chat_id, "Отправьте в одном сообщении хештеги через пробел\nВозможные хештеги:")
     update_session_step(conn, chat_id, '/hashtags')
 
 
@@ -158,7 +158,9 @@ def set_title(conn, chat_id, title):
 
 def set_hashtags(conn, chat_id, hashtags):
     cur = conn.cursor()
-    cur.execute("UPDATE stock_sessions SET hashtags = '" + hashtags + "' WHERE chat_id = " + str(chat_id))
+    new_hashtags = set(hashtags.trim().split(' '))
+    res = ' '.join([x for x in new_hashtags if x in possible_hashtags])
+    cur.execute("UPDATE stock_sessions SET hashtags = '" + res + "' WHERE chat_id = " + str(chat_id))
 
 
 def set_price(conn, chat_id, price):
@@ -211,7 +213,6 @@ def main():
     if 'text' in data['message'] and data['message']['text'] == '/new':
         create_session(conn, chat_id)
         send_message(chat_id, "Отправь /help чтобы посмотреть список доступных команд")
-        send_message(chat_id, 'Чтобы создать новое объявление отправь /new')
         conn.commit()
         conn.close()
         return Response('Duck says meow')
