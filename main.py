@@ -216,6 +216,10 @@ def main():
         conn.close()
         return Response('Duck says meow')
     session = get_session(conn, chat_id)
+    if session is None:
+        send_message(chat_id, "Сначала создайте новое объявление с помощью /new")
+        conn.close()
+        return Response('Duck says meow')
     if session['step'] == '/images' and 'document' in data['message']:
         file_id = data['message']['document']['file_id']
         file_path = requests.get(BOT_URL + 'getFile?file_id=' + file_id).json()['result']['file_path']
