@@ -76,7 +76,7 @@ def ask_for_title(conn, chat_id):
 
 
 def ask_for_hashtags(conn, chat_id):
-    send_message(chat_id, "Отправьте в одном сообщении хештеги через пробел\nВозможные хештеги:")
+    send_message(chat_id, "Отправьте в одном сообщении хештеги через пробел\nВозможные хештеги:\n" + ' '.join(possible_hashtags))
     update_session_step(conn, chat_id, '/hashtags')
 
 
