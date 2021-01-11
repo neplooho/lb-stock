@@ -14,8 +14,6 @@ app = Flask(__name__)
 BOT_URL = 'https://api.telegram.org/bot{0}/'.format(open('secrets/bot_token', 'r').read()[:-1])
 FILE_URL = 'https://api.telegram.org/file/bot{0}/'.format(open('secrets/bot_token', 'r').read()[:-1])
 database_path = r"database/db.sqlite"
-with open('order_template.html', encoding='utf-8', mode='r') as template_file:
-    template = template_file.read()
 
 
 def create_connection(db_file):
@@ -98,7 +96,7 @@ def build_telegraph_and_return_link(conn, chat_id):
     dict = {k: ('file', v, 'image/jpeg') for k, v in enumerate(image_binaries)}
     paths = [x['src'] for x in requests.post('https://telegra.ph/upload', files=dict).json()]
     images_content = '\n'.join(["<img src = '{}' />".format(x) for x in paths])
-    html_content=template.format(images_content, session['price'], session['description'])
+    html_content=images_content + '<p>Цена: ' + session['price'] + '</p>\n<p>'+ session['description'] + '</p>'
     response = telegraph.create_page(session['title'], html_content=html_content)
     #TODO: clear session and images from db
     send_message(chat_id, format_session_to_text(get_session(conn, chat_id)))
