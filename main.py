@@ -90,20 +90,18 @@ def ask_for_images(conn, chat_id):
 
 def build_telegraph_and_return_link(conn, chat_id):
     session = get_session(conn, chat_id)
-    #TODO: check all fields present
+    # TODO: check all fields present
     links_to_download = [FILE_URL + x for x in session['images']]
     image_binaries = [requests.get(x).content for x in links_to_download]
-    dict = {str(k): ('file', v, 'image/jpeg') for k, v in enumerate(image_binaries)}
-    res = requests.post('https://telegra.ph/upload', files=dict)
-    print(res)
-    print(res.content)
-    # paths = [x['src'] for x in requests.post('https://telegra.ph/upload', files=dict).json()]
-    # images_content = '\n'.join(["<img src = '{}' />".format(x) for x in paths])
-    # html_content=images_content + '<p>Цена: ' + session['price'] + '</p>\n<p>'+ session['description'] + '</p>'
-    # response = telegraph.create_page(session['title'], html_content=html_content)
+    paths = [x['src'] for x in requests.post('https://telegra.ph/upload',
+                                             files={str(k): ('file', v, 'image/jpeg') for k, v in
+                                                    enumerate(image_binaries)}).json()]
+    images_content = '\n'.join(["<img src = '{}' />".format(x) for x in paths])
+    html_content = images_content + '<p>Цена: ' + str(session['price']) + '</p>\n<p>' + session['description'] + '</p>'
+    response = telegraph.create_page(session['title'], html_content=html_content)
     # TODO: clear session and images from db
-    # send_message(chat_id, format_session_to_text(get_session(conn, chat_id)))
-    # send_message(chat_id, 'https://telegra.ph/{}'.format(response['path']))
+    send_message(chat_id, format_session_to_text(get_session(conn, chat_id)))
+    send_message(chat_id, response['url'])
 
 
 def send_available_options(chat_id):
