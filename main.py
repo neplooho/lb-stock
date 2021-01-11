@@ -60,37 +60,37 @@ def format_session_to_text(session):
                    session['step'] or u'None')
 
 
-def create_session(conn, chat_id):
+def create_session(conn, chat_id, *args):
     cur = conn.cursor()
     cur.execute("INSERT OR REPLACE INTO stock_sessions (chat_id, step) VALUES ({}, '/new');".format(chat_id))
 
 
-def update_session_step(conn, chat_id, step):
+def update_session_step(conn, chat_id, step, *args):
     cur = conn.cursor()
     cur.execute("UPDATE stock_sessions SET step = '{}' WHERE chat_id = {};".format(step, chat_id))
 
 
-def ask_for_title(conn, chat_id):
+def ask_for_title(conn, chat_id, *args):
     send_message(chat_id, "Отправьте заголовок для вашего объявления")
     update_session_step(conn, chat_id, '/title')
 
 
-def ask_for_hashtags(conn, chat_id):
+def ask_for_hashtags(conn, chat_id, *args):
     send_message(chat_id, "Отправьте в одном сообщении хештеги через пробел\nВозможные хештеги:\n" + ' '.join(possible_hashtags))
     update_session_step(conn, chat_id, '/hashtags')
 
 
-def ask_for_price(conn, chat_id):
+def ask_for_price(conn, chat_id, *args):
     send_message(chat_id, "Отправьте примерную цену в гривнах (это должно быть число а не диапазон от и до)")
     update_session_step(conn, chat_id, '/price')
 
 
-def ask_for_description(conn, chat_id):
+def ask_for_description(conn, chat_id, *args):
     send_message(chat_id, "Отправьте описание в одном сообщении для вашего объявления")
     update_session_step(conn, chat_id, '/description')
 
 
-def ask_for_images(conn, chat_id):
+def ask_for_images(conn, chat_id, *args):
     send_message(chat_id, "Отправьте картинки файлами")
     update_session_step(conn, chat_id, '/images')
 
@@ -238,9 +238,9 @@ def main():
             send_available_options(chat_id)
         else:
             update_session_step(conn, chat_id, step=text)
-            options[text][0](conn, chat_id)
+            options[text][0](conn, chat_id, data['message']['from']['id'])
     elif session['step'] != '/new':
-        options[session['step']][1](conn, chat_id, text, data['message']['from']['id'])
+        options[session['step']][1](conn, chat_id, text)
         send_message(chat_id, "Отлично, что дальше?")
     else:
         send_message(chat_id, "Я не знаю такой команды как {}".format(text))
