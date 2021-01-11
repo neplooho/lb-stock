@@ -160,7 +160,10 @@ def set_hashtags(conn, chat_id, hashtags, *args):
     cur = conn.cursor()
     new_hashtags = set(hashtags.strip().split(' '))
     res = ' '.join([x for x in new_hashtags if x in possible_hashtags])
-    cur.execute("UPDATE stock_sessions SET hashtags = '" + res + "' WHERE chat_id = " + str(chat_id))
+    if not res.strip():
+        send_message(chat_id, 'Я не знаю таких хештегов, выбери из списка')
+    else:
+        cur.execute("UPDATE stock_sessions SET hashtags = '" + res + "' WHERE chat_id = " + str(chat_id))
 
 
 def set_price(conn, chat_id, price, *args):
