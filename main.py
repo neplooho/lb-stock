@@ -238,7 +238,7 @@ def main():
             send_available_options(chat_id)
         else:
             update_session_step(conn, chat_id, step=text)
-            options[text][0](conn, chat_id, data['message']['from']['id'])
+            options[text][0](conn, chat_id, data['message']['from']['username'])
     elif session['step'] != '/new':
         options[session['step']][1](conn, chat_id, text)
         send_message(chat_id, "Отлично, что дальше?")
