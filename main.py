@@ -95,7 +95,7 @@ def ask_for_images(conn, chat_id):
     update_session_step(conn, chat_id, '/images')
 
 
-def build_telegraph_and_return_link(conn, chat_id):
+def build_telegraph_and_return_link(conn, chat_id, *args):
     session = get_session(conn, chat_id)
     if not is_ready_to_finish(session):
         missing_values = get_missing_values(session)
@@ -110,7 +110,7 @@ def build_telegraph_and_return_link(conn, chat_id):
     html_content = images_content + '<p>Цена: ' + str(session['price']) + '</p>\n<p>' + session['description'] + '</p>'
     response = telegraph.create_page(session['title'], html_content=html_content)
     clear_session(conn, chat_id) #clear order data
-    send_message(chat_id, response['url'] + '\n' + session['hashtags'])
+    send_message(chat_id, response['url'] + '\n' + session['hashtags'] + '\n' + args[0])
 
 
 def is_ready_to_finish(session):
@@ -151,29 +151,29 @@ def send_available_options(chat_id):
 /finish - Отправить объявление на рассмотрение""")
 
 
-def set_title(conn, chat_id, title):
+def set_title(conn, chat_id, title, *args):
     cur = conn.cursor()
     cur.execute("UPDATE stock_sessions SET title = '" + title + "' WHERE chat_id = " + str(chat_id))
 
 
-def set_hashtags(conn, chat_id, hashtags):
+def set_hashtags(conn, chat_id, hashtags, *args):
     cur = conn.cursor()
     new_hashtags = set(hashtags.strip().split(' '))
     res = ' '.join([x for x in new_hashtags if x in possible_hashtags])
     cur.execute("UPDATE stock_sessions SET hashtags = '" + res + "' WHERE chat_id = " + str(chat_id))
 
 
-def set_price(conn, chat_id, price):
+def set_price(conn, chat_id, price, *args):
     cur = conn.cursor()
     cur.execute("UPDATE stock_sessions SET price = " + price + " WHERE chat_id = " + str(chat_id))
 
 
-def set_description(conn, chat_id, description):
+def set_description(conn, chat_id, description, *args):
     cur = conn.cursor()
     cur.execute("UPDATE stock_sessions SET description = '" + description + "' WHERE chat_id = " + str(chat_id))
 
 
-def add_image(conn, chat_id, file_path):
+def add_image(conn, chat_id, file_path, *args):
     cur = conn.cursor()
     cur.execute(
         "INSERT OR REPLACE INTO images (image_path, chat_id) VALUES ('" + file_path + "', " + str(chat_id) + ");")
@@ -237,7 +237,7 @@ def main():
             update_session_step(conn, chat_id, step=text)
             options[text][0](conn, chat_id)
     elif session['step'] != '/new':
-        options[session['step']][1](conn, chat_id, text)
+        options[session['step']][1](conn, chat_id, text, data['message']['from']['id'])
         send_message(chat_id, "Отлично, что дальше?")
     else:
         send_message(chat_id, "Я не знаю такой команды как {}".format(text))
