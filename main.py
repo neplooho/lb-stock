@@ -110,7 +110,6 @@ def build_telegraph_and_return_link(conn, chat_id):
     html_content = images_content + '<p>Цена: ' + str(session['price']) + '</p>\n<p>' + session['description'] + '</p>'
     response = telegraph.create_page(session['title'], html_content=html_content)
     clear_session(conn, chat_id) #clear order data
-    send_message(chat_id, format_session_to_text(get_session(conn, chat_id)))
     send_message(chat_id, response['url'])
 
 
