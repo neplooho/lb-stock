@@ -99,7 +99,7 @@ def build_telegraph_and_return_link(conn, chat_id):
     session = get_session(conn, chat_id)
     if not is_ready_to_finish(session):
         missing_values = get_missing_values(session)
-        send_message(chat_id, 'Зполните пожалуйсте следующие поля:\n' + ','.join(missing_values))
+        send_message(chat_id, 'Зполните пожалуйсте следующие поля:\n' + ', '.join(missing_values))
         return
     links_to_download = [FILE_URL + x for x in session['images']]
     image_binaries = [requests.get(x).content for x in links_to_download]
@@ -116,6 +116,8 @@ def build_telegraph_and_return_link(conn, chat_id):
 def is_ready_to_finish(session):
     for key, value in session.items():
         if value is None:
+            return False
+        if key == 'images' and len(value) == 0:
             return False
     return True
 
