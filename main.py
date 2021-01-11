@@ -44,6 +44,13 @@ def get_session(conn, chat_id):
         return None
 
 
+def clear_session(conn, chat_id):
+    cur = conn.cursor()
+    cur.execute("DELETE FROM images WHERE chat_id = {};".format(chat_id))
+    cur.execute("DELETE FROM stock_sessions WHERE chat_id = {};".format(chat_id))
+    cur.close()
+
+
 def format_session_to_text(session):
     return 'Chat: ' + str(session['chat_id']) + ' \nTitle: ' + (session[
                                                                     'title'] or u'None') + ' \nHashtags: ' + (
@@ -90,7 +97,10 @@ def ask_for_images(conn, chat_id):
 
 def build_telegraph_and_return_link(conn, chat_id):
     session = get_session(conn, chat_id)
-    # TODO: check all fields present
+    if not is_ready_to_finish(session):
+        missing_values = get_missing_values(session)
+        send_message(chat_id, 'Зполните пожалуйсте следующие поля:\n' + ','.join(missing_values))
+        return
     links_to_download = [FILE_URL + x for x in session['images']]
     image_binaries = [requests.get(x).content for x in links_to_download]
     paths = [x['src'] for x in requests.post('https://telegra.ph/upload',
@@ -99,9 +109,31 @@ def build_telegraph_and_return_link(conn, chat_id):
     images_content = '\n'.join(["<img src = '{}' />".format(x) for x in paths])
     html_content = images_content + '<p>Цена: ' + str(session['price']) + '</p>\n<p>' + session['description'] + '</p>'
     response = telegraph.create_page(session['title'], html_content=html_content)
-    # TODO: clear session and images from db
+    clear_session(conn, chat_id) #clear order data
     send_message(chat_id, format_session_to_text(get_session(conn, chat_id)))
     send_message(chat_id, response['url'])
+
+
+def is_ready_to_finish(session):
+    for key, value in session.items():
+        if value is None:
+            return False
+    return True
+
+
+options_to_text = {'title': 'заголовок',
+                   'hashtags': 'хештеги',
+                   'price': 'цена',
+                   'description': 'описание',
+                   'images': 'картинки'}
+
+
+def get_missing_values(session):
+    missing_values = []
+    for k, v in options_to_text:
+        if session[k] is None:
+            missing_values.append(v)
+    return missing_values
 
 
 def send_available_options(chat_id):
