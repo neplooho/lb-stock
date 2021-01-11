@@ -129,8 +129,10 @@ options_to_text = {'title': 'заголовок',
 
 def get_missing_values(session):
     missing_values = []
-    for k, v in options_to_text:
+    for k, v in options_to_text.items():
         if session[k] is None:
+            missing_values.append(v)
+        if k == 'images' and len(session[k]) == 0:
             missing_values.append(v)
     return missing_values
 
