@@ -6,7 +6,16 @@ from flask import Flask, Response, redirect, request
 from sqlite3 import Error
 import sqlite3
 import requests
-import tarfile
+from telegraph import Telegraph
+
+telegraph = Telegraph()
+telegraph.create_account(short_name='Барахолка')
+app = Flask(__name__)
+BOT_URL = 'https://api.telegram.org/bot{0}/'.format(open('secrets/bot_token', 'r').read()[:-1])
+FILE_URL = 'https://api.telegram.org/file/bot{0}/'.format(open('secrets/bot_token', 'r').read()[:-1])
+database_path = r"database/db.sqlite"
+with open('order_template.html', encoding='utf-8', mode='r') as template_file:
+    template = template_file.read()
 
 
 def create_connection(db_file):
@@ -82,7 +91,18 @@ def ask_for_images(conn, chat_id):
 
 
 def build_telegraph_and_return_link(conn, chat_id):
+    session = get_session(conn, chat_id)
+    #TODO: check all fields present
+    links_to_download = [FILE_URL + x for x in session['images']]
+    image_binaries = [requests.get(x).content for x in links_to_download]
+    dict = {k: ('file', v, 'image/jpeg') for k, v in enumerate(image_binaries)}
+    paths = [x['src'] for x in requests.post('https://telegra.ph/upload', files=dict).json()]
+    images_content = '\n'.join(["<img src = '{}' />".format(x) for x in paths])
+    html_content=template.format(images_content, session['price'], session['description'])
+    response = telegraph.create_page(session['title'], html_content=html_content)
+    #TODO: clear session and images from db
     send_message(chat_id, format_session_to_text(get_session(conn, chat_id)))
+    send_message(chat_id, 'https://telegra.ph/{}'.format(response['path']))
 
 
 def send_available_options(chat_id):
@@ -130,11 +150,6 @@ options = {'/title': (ask_for_title, set_title),
            '/images': (ask_for_images, add_image),
            '/finish': (build_telegraph_and_return_link, None),  # some crutches here, nvm
            '/help': send_available_options}
-
-app = Flask(__name__)
-BOT_URL = 'https://api.telegram.org/bot{0}/'.format(open('secrets/bot_token', 'r').read()[:-1])
-FILE_URL = 'https://api.telegram.org/file/bot{0}/'.format(open('secrets/bot_token', 'r').read()[:-1])
-database_path = r"database/db.sqlite"
 
 
 def send_message(chat_id, ans):
