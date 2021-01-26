@@ -228,6 +228,7 @@ def main():
     conn = create_connection(database_path)
     data = request.get_json()
     chat_id = int(data['message']['chat']['id'])
+    print(data['message'])
     if 'text' in data['message'] and data['message']['text'] == '/new':
         create_session(conn, chat_id)
         send_message(chat_id, "Какой будет заголовок?")
@@ -245,7 +246,6 @@ def main():
         add_image(conn, chat_id, file_path)
         conn.commit()
         conn.close()
-        send_message(chat_id, "Картинка добавлена")
         return Response('Duck says meow')
     else:
         options[session['step']][1](conn, chat_id, data['message']['text'])
