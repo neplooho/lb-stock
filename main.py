@@ -171,15 +171,9 @@ def batch(iterable, n=1):
 
 
 def get_hashtags_markup(conn, chat_id):
-    # batch([{'text': x} for x in [red_x + x for x in possible_hashtags]], 2)
-    reply_markup = {'one_time_keyboard': False, 'keyboard':
-        batch([{'text': x} for x in [red_x + x for x in possible_hashtags]], 2)
-                    #     [  # rows
-                    #     [  # columns
-                    #         {'text': x} for x in [red_x + x for x in possible_hashtags]
-                    #     ]
-                    # ]
-        , 'resize_keyboard': True}
+    reply_markup = {'one_time_keyboard': False,
+                    'keyboard': list(batch([{'text': x} for x in [red_x + x for x in possible_hashtags]], 2)).append('Готово'),
+                    'resize_keyboard': True}
     return reply_markup
 
 
