@@ -172,14 +172,14 @@ def batch(iterable, n=1):
 
 def get_hashtags_markup(conn, chat_id):
     mark = list(batch([{'text': x} for x in [red_x + x for x in possible_hashtags]], 2))
-    mark.append({'text': 'Готово'})
+    mark.append([{'text': 'Готово'}])
     reply_markup = {'one_time_keyboard': False,
                     'keyboard': mark,
                     'resize_keyboard': True}
     return reply_markup
 
 
-def set_hashtags(conn, chat_id, hashtags, *args):
+def set_hashtags(conn, chat_id, hashtags, *args): #todo: react to single hashtag, update it's check status
     cur = conn.cursor()
     new_hashtags = set(hashtags.strip().split(' '))
     res = ' '.join([x for x in new_hashtags if x in possible_hashtags])
