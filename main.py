@@ -14,7 +14,9 @@ app = Flask(__name__)
 BOT_URL = 'https://api.telegram.org/bot{0}/'.format(open('secrets/bot_token', 'r').read()[:-1])
 FILE_URL = 'https://api.telegram.org/file/bot{0}/'.format(open('secrets/bot_token', 'r').read()[:-1])
 database_path = r"database/db.sqlite"
-possible_hashtags = set("#лбкиїв_компліт #лбкиїв_підвіси #лбкиїв_колеса #лбкиїв_дека #лбкиїв_інше #лбкиїв_захист".split(' '))
+possible_hashtags = set(
+    "#лбкиїв_компліт #лбкиїв_підвіси #лбкиїв_колеса #лбкиїв_дека #лбкиїв_інше #лбкиїв_захист".split(' '))
+
 
 def create_connection(db_file):
     conn = None
@@ -62,7 +64,7 @@ def format_session_to_text(session):
 
 def create_session(conn, chat_id, *args):
     cur = conn.cursor()
-    cur.execute("INSERT OR REPLACE INTO stock_sessions (chat_id, step) VALUES ({}, '/new');".format(chat_id))
+    cur.execute("INSERT OR REPLACE INTO stock_sessions (chat_id, step) VALUES ({}, '/title');".format(chat_id))
 
 
 def update_session_step(conn, chat_id, step, *args):
@@ -76,7 +78,8 @@ def ask_for_title(conn, chat_id, *args):
 
 
 def ask_for_hashtags(conn, chat_id, *args):
-    send_message(chat_id, "Отправьте в одном сообщении хештеги через пробел\nВозможные хештеги:\n" + ' '.join(possible_hashtags))
+    send_message(chat_id,
+                 "Отправьте в одном сообщении хештеги через пробел\nВозможные хештеги:\n" + ' '.join(possible_hashtags))
     update_session_step(conn, chat_id, '/hashtags')
 
 
@@ -109,7 +112,7 @@ def build_telegraph_and_return_link(conn, chat_id, *args):
     images_content = '\n'.join(["<img src = '{}' />".format(x) for x in paths])
     html_content = images_content + '<p>Цена: ' + str(session['price']) + '</p>\n<p>' + session['description'] + '</p>'
     response = telegraph.create_page(session['title'], html_content=html_content)
-    clear_session(conn, chat_id) #clear order data
+    clear_session(conn, chat_id)  # clear order data
     send_message(chat_id, response['url'] + '\n' + session['hashtags'] + '\n@' + str(args[0]))
 
 
@@ -153,7 +156,10 @@ def send_available_options(chat_id):
 
 def set_title(conn, chat_id, title, *args):
     cur = conn.cursor()
-    cur.execute("UPDATE stock_sessions SET title = '" + title.replace('\'', '\'\'') + "' WHERE chat_id = " + str(chat_id))
+    cur.execute("UPDATE stock_sessions SET step = '/description', title = '" + title.replace('\'',
+                                                                                             '\'\'') + "' WHERE chat_id = " + str(
+        chat_id))
+    send_message(chat_id, "Отлично, а описание?")
 
 
 def set_hashtags(conn, chat_id, hashtags, *args):
@@ -163,23 +169,29 @@ def set_hashtags(conn, chat_id, hashtags, *args):
     if not res.strip():
         send_message(chat_id, 'Я не знаю таких хештегов, выбери из списка')
     else:
-        cur.execute("UPDATE stock_sessions SET hashtags = '" + res + "' WHERE chat_id = " + str(chat_id))
+        cur.execute(
+            "UPDATE stock_sessions SET step = '/ready', hashtags = '" + res + "' WHERE chat_id = " + str(chat_id))
 
 
 def set_price(conn, chat_id, price, *args):
     cur = conn.cursor()
-    cur.execute("UPDATE stock_sessions SET price = " + price + " WHERE chat_id = " + str(chat_id))
+    cur.execute("UPDATE stock_sessions SET step = '/hashtags', price = " + price + " WHERE chat_id = " + str(chat_id))
 
 
 def set_description(conn, chat_id, description, *args):
     cur = conn.cursor()
-    cur.execute("UPDATE stock_sessions SET description = '" + description.replace('\'', '\'\'') + "' WHERE chat_id = " + str(chat_id))
+    cur.execute("UPDATE stock_sessions SET step = '/images', description = '" + description.replace('\'',
+                                                                                                    '\'\'') + "' WHERE chat_id = " + str(
+        chat_id))
+    send_message(chat_id, "Отличное описание, выгрузи теперь картинки файлами")
 
 
 def add_image(conn, chat_id, file_path, *args):
     cur = conn.cursor()
     cur.execute(
         "INSERT OR REPLACE INTO images (image_path, chat_id) VALUES ('" + file_path + "', " + str(chat_id) + ");")
+    send_message(chat_id, "Круто, картинка добавлена", reply_markup={'one_time_keyboard' : True, 'keyboard' : [[{'text' : 'Я добавил все картинки, перейти дальше'}]], 'resize_keyboard': True})
+    # TODO: add button to break image addition
 
 
 options = {'/title': (ask_for_title, set_title),
@@ -188,15 +200,18 @@ options = {'/title': (ask_for_title, set_title),
            '/description': (ask_for_description, set_description),
            '/images': (ask_for_images, add_image),
            '/finish': (build_telegraph_and_return_link, None),  # some crutches here, nvm
-           '/help': send_available_options}
+           '/help': send_available_options,
+           '/ready': (None)}  # TODO show preview and submit buttons on this stem
 
 
-def send_message(chat_id, ans):
+def send_message(chat_id, ans, reply_markup=None):
     message_url = BOT_URL + 'sendMessage'
     data = {
         'chat_id': chat_id,
         'text': ans
     }
+    if reply_markup is not None:
+        data['reply_markup'] = reply_markup
     requests.post(message_url, json=data)
 
 
@@ -215,11 +230,12 @@ def main():
     chat_id = int(data['message']['chat']['id'])
     if 'text' in data['message'] and data['message']['text'] == '/new':
         create_session(conn, chat_id)
-        send_message(chat_id, "Отправь /help чтобы посмотреть список доступных команд")
+        send_message(chat_id, "Какой будет заголовок?")
         conn.commit()
         conn.close()
         return Response('Duck says meow')
     session = get_session(conn, chat_id)
+    print(data['message']['text'])
     if session is None:
         send_message(chat_id, "Сначала создайте новое объявление с помощью /new")
         conn.close()
@@ -232,7 +248,7 @@ def main():
         conn.close()
         send_message(chat_id, "Картинка добавлена")
         return Response('Duck says meow')
-    text = data['message']['text']
+    text = session['step']
     if text in options:
         if text == '/help':
             send_available_options(chat_id)
@@ -241,7 +257,7 @@ def main():
             options[text][0](conn, chat_id, data['message']['from']['username'])
     elif session['step'] != '/new':
         options[session['step']][1](conn, chat_id, text)
-        send_message(chat_id, "Отлично, что дальше?")
+        # send_message(chat_id, "Отлично, что дальше?")
     else:
         send_message(chat_id, "Я не знаю такой команды как {}".format(text))
         conn.commit()
