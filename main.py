@@ -19,6 +19,7 @@ possible_hashtags = set(
 green_check_mark = u'2705'
 red_x = u'274C'
 
+
 def create_connection(db_file):
     conn = None
     try:
@@ -165,7 +166,9 @@ def set_title(conn, chat_id, title, *args):
 
 def get_hashtags_markup(conn, chat_id):
     reply_markup = {'one_time_keyboard': False, 'keyboard': [
-        [dict(zip('text' * len(possible_hashtags), red_x + x)) for x in possible_hashtags]
+        [
+            [{'text': x} for x in [red_x + x for x in possible_hashtags]]
+        ]
     ], 'resize_keyboard': True}
     return reply_markup
 
@@ -175,7 +178,8 @@ def set_hashtags(conn, chat_id, hashtags, *args):
     new_hashtags = set(hashtags.strip().split(' '))
     res = ' '.join([x for x in new_hashtags if x in possible_hashtags])
     if not res.strip():
-        send_message(chat_id, 'Я не знаю таких хештегов, выбери из списка', reply_markup=get_hashtags_markup(conn, chat_id))
+        send_message(chat_id, 'Я не знаю таких хештегов, выбери из списка',
+                     reply_markup=get_hashtags_markup(conn, chat_id))
     else:
         cur.execute(
             "UPDATE stock_sessions SET step = '/ready', hashtags = '" + res + "' WHERE chat_id = " + str(chat_id))
