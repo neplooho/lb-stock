@@ -164,12 +164,22 @@ def set_title(conn, chat_id, title, *args):
     send_message(chat_id, "Отлично, а описание?")
 
 
+def batch(iterable, n=1):
+    l = len(iterable)
+    for ndx in range(0, l, n):
+        yield iterable[ndx:min(ndx + n, l)]
+
+
 def get_hashtags_markup(conn, chat_id):
-    reply_markup = {'one_time_keyboard': False, 'keyboard': [
-        [
-            {'text': x} for x in [red_x + x for x in possible_hashtags]
-        ]
-    ], 'resize_keyboard': True}
+    # batch([{'text': x} for x in [red_x + x for x in possible_hashtags]], 2)
+    reply_markup = {'one_time_keyboard': False, 'keyboard':
+        batch([{'text': x} for x in [red_x + x for x in possible_hashtags]], 2)
+                    #     [  # rows
+                    #     [  # columns
+                    #         {'text': x} for x in [red_x + x for x in possible_hashtags]
+                    #     ]
+                    # ]
+        , 'resize_keyboard': True}
     return reply_markup
 
 
