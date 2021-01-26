@@ -16,7 +16,8 @@ FILE_URL = 'https://api.telegram.org/file/bot{0}/'.format(open('secrets/bot_toke
 database_path = r"database/db.sqlite"
 possible_hashtags = set(
     "#лбкиїв_компліт #лбкиїв_підвіси #лбкиїв_колеса #лбкиїв_дека #лбкиїв_інше #лбкиїв_захист".split(' '))
-
+green_check_mark = u'2705'
+red_x = u'274C'
 
 def create_connection(db_file):
     conn = None
@@ -162,12 +163,19 @@ def set_title(conn, chat_id, title, *args):
     send_message(chat_id, "Отлично, а описание?")
 
 
+def get_hashtags_markup(conn, chat_id):
+    reply_markup = {'one_time_keyboard': False, 'keyboard': [
+        [dict(zip('text', red_x + x)) for x in possible_hashtags]
+    ], 'resize_keyboard': True}
+    return reply_markup
+
+
 def set_hashtags(conn, chat_id, hashtags, *args):
     cur = conn.cursor()
     new_hashtags = set(hashtags.strip().split(' '))
     res = ' '.join([x for x in new_hashtags if x in possible_hashtags])
     if not res.strip():
-        send_message(chat_id, 'Я не знаю таких хештегов, выбери из списка')
+        send_message(chat_id, 'Я не знаю таких хештегов, выбери из списка', reply_markup=get_hashtags_markup(conn, chat_id))
     else:
         cur.execute(
             "UPDATE stock_sessions SET step = '/ready', hashtags = '" + res + "' WHERE chat_id = " + str(chat_id))
@@ -176,8 +184,9 @@ def set_hashtags(conn, chat_id, hashtags, *args):
 def set_price(conn, chat_id, price, *args):
     cur = conn.cursor()
     try:
-        cur.execute("UPDATE stock_sessions SET step = '/hashtags', price = " + price + " WHERE chat_id = " + str(chat_id))
-    except Exception as e:
+        cur.execute(
+            "UPDATE stock_sessions SET step = '/hashtags', price = " + price + " WHERE chat_id = " + str(chat_id))
+    except sqlite3.OperationalError as e:
         print(type(e))
         send_message(chat_id, 'Не получилось сохранить цену, отправь ещё раз. Вот пример: 840.00')
         return
