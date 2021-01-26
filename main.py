@@ -165,7 +165,7 @@ def set_title(conn, chat_id, title, *args):
 
 def get_hashtags_markup(conn, chat_id):
     reply_markup = {'one_time_keyboard': False, 'keyboard': [
-        [dict(zip('text', red_x + x)) for x in possible_hashtags]
+        [dict(zip('text' * len(possible_hashtags), red_x + x)) for x in possible_hashtags]
     ], 'resize_keyboard': True}
     return reply_markup
 
