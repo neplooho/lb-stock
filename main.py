@@ -235,7 +235,6 @@ def main():
         conn.close()
         return Response('Duck says meow')
     session = get_session(conn, chat_id)
-    print(data['message']['text'])
     if session is None:
         send_message(chat_id, "Сначала создайте новое объявление с помощью /new")
         conn.close()
