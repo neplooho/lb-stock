@@ -240,15 +240,17 @@ def main():
         send_message(chat_id, "Сначала создайте новое объявление с помощью /new")
         conn.close()
         return Response('Duck says meow')
-    options[session['step']][1](conn, chat_id, data['message']['text'])
-    # if session['step'] == '/images' and 'document' in data['message']:
-    #     file_id = data['message']['document']['file_id']
-    #     file_path = requests.get(BOT_URL + 'getFile?file_id=' + file_id).json()['result']['file_path']
-    #     add_image(conn, chat_id, file_path)
-    #     conn.commit()
-    #     conn.close()
-    #     send_message(chat_id, "Картинка добавлена")
-    #     return Response('Duck says meow')
+    if session['step'] == '/images' and 'document' in data['message']:
+        file_id = data['message']['document']['file_id']
+        file_path = requests.get(BOT_URL + 'getFile?file_id=' + file_id).json()['result']['file_path']
+        add_image(conn, chat_id, file_path)
+        conn.commit()
+        conn.close()
+        send_message(chat_id, "Картинка добавлена")
+        return Response('Duck says meow')
+    else:
+        options[session['step']][1](conn, chat_id, data['message']['text'])
+
     # text = session['step']
     # if text in options:
     #     if text == '/help':
