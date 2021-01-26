@@ -175,7 +175,13 @@ def set_hashtags(conn, chat_id, hashtags, *args):
 
 def set_price(conn, chat_id, price, *args):
     cur = conn.cursor()
-    cur.execute("UPDATE stock_sessions SET step = '/hashtags', price = " + price + " WHERE chat_id = " + str(chat_id))
+    try:
+        cur.execute("UPDATE stock_sessions SET step = '/hashtags', price = " + price + " WHERE chat_id = " + str(chat_id))
+    except Exception as e:
+        print(type(e))
+        send_message(chat_id, 'Не получилось сохранить цену, отправь ещё раз. Вот пример: 840.00')
+        return
+    send_message(chat_id, 'Цена сохранена, выбери хештеги')
 
 
 def set_description(conn, chat_id, description, *args):
@@ -190,7 +196,8 @@ def add_image(conn, chat_id, file_path, *args):
     cur = conn.cursor()
     cur.execute(
         "INSERT OR REPLACE INTO images (image_path, chat_id) VALUES ('" + file_path + "', " + str(chat_id) + ");")
-    send_message(chat_id, "Круто, картинка добавлена", reply_markup={'one_time_keyboard' : True, 'keyboard' : [[{'text' : 'Я добавил все картинки, перейти дальше'}]], 'resize_keyboard': True})
+    send_message(chat_id, "Круто, картинка добавлена", reply_markup={'one_time_keyboard': True, 'keyboard': [
+        [{'text': 'Я добавил все картинки, перейти дальше'}]], 'resize_keyboard': True})
     # TODO: add button to break image addition
 
 
@@ -247,6 +254,11 @@ def main():
         conn.commit()
         conn.close()
         return Response('Duck says meow')
+    elif session['step'] == '/images' and 'text' in data['message'] and data['message'][
+        'text'] == 'Я добавил все картинки, перейти дальше':
+        update_session_step(conn, chat_id, '/price')
+        send_message(chat_id, 'Такс, и сколько ты за это хочешь?',
+                     reply_markup={'remove_keyboard': True})  # todo: handle invalid prices
     else:
         options[session['step']][1](conn, chat_id, data['message']['text'])
 
