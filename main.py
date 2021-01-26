@@ -16,8 +16,8 @@ FILE_URL = 'https://api.telegram.org/file/bot{0}/'.format(open('secrets/bot_toke
 database_path = r"database/db.sqlite"
 possible_hashtags = set(
     "#лбкиїв_компліт #лбкиїв_підвіси #лбкиїв_колеса #лбкиїв_дека #лбкиїв_інше #лбкиїв_захист".split(' '))
-green_check_mark = u'2705'
-red_x = u'274C'
+green_check_mark = '✔'
+red_x = '❌'
 
 
 def create_connection(db_file):
