@@ -301,7 +301,7 @@ def main():
         send_message(chat_id, "Готово!", reply_markup={'one_time_keyboard': True, 'keyboard': [
             [{'text': 'Посмотреть'}, {'text': 'Отправить'}]], 'resize_keyboard': True})
     elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Посмотреть':
-        build_telegraph_and_return_link(conn, chat_id)
+        build_telegraph_and_return_link(conn, chat_id, data['message']['from']['username'])
         send_message(chat_id, None, reply_markup={'one_time_keyboard': True, 'keyboard': [
             [{'text': 'Отправить'}]], 'resize_keyboard': True})
     elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Отправить':
