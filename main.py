@@ -118,7 +118,8 @@ def build_telegraph_and_return_link(conn, chat_id, *args):
     html_content = images_content + '<p>Цена: ' + str(session['price']) + '</p>\n<p>' + session['description'] + '</p>'
     response = telegraph.create_page(session['title'], html_content=html_content)
     clear_session(conn, chat_id)  # clear order data
-    send_message(chat_id, response['url'] + '\n' + session['hashtags'] + '\n@' + str(args[0]))
+    send_message(chat_id, response['url'] + '\n' + ' '.join([x[1:] for x in session['hashtags'].split(' ') if
+                                                    x[0] == green_check_mark]) + '\n@' + str(args[0]))
 
 
 def is_ready_to_finish(session):
@@ -174,7 +175,7 @@ def batch(iterable, n=1):
 
 
 def get_hashtags_markup(conn, chat_id, existing_tags):
-    mark = list(batch([{'text': x} for x in existing_tags], 2))
+    mark = list(batch([{'text': x} for x in existing_tags.split(' ')], 2))
     mark.append([{'text': 'Готово'}])
     reply_markup = {'one_time_keyboard': False,
                     'keyboard': mark,
@@ -305,7 +306,7 @@ def main():
         send_message(chat_id, None, reply_markup={'one_time_keyboard': True, 'keyboard': [
             [{'text': 'Отправить'}]], 'resize_keyboard': True})
     elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Отправить':
-        #todo forward post to admins
+        # todo forward post to admins
         pass
     else:
         options[session['step']][1](conn, chat_id, data['message']['text'])
