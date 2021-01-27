@@ -68,8 +68,8 @@ def create_session(conn, chat_id, *args):
     cur = conn.cursor()
     default_tags = ' '.join([red_x + x for x in possible_hashtags])
     cur.execute(
-        "INSERT OR REPLACE INTO stock_sessions (chat_id, step, hashtags) VALUES ({}, '/title', '" + default_tags + "');".format(
-            chat_id))
+        "INSERT OR REPLACE INTO stock_sessions (chat_id, step, hashtags) VALUES ({}, '/title', '".format(
+            chat_id) + default_tags + "');")
 
 
 def update_session_step(conn, chat_id, step, *args):
