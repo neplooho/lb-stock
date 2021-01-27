@@ -175,7 +175,7 @@ def batch(iterable, n=1):
 
 
 def get_hashtags_markup(conn, chat_id, existing_tags):
-    mark = list(batch([{'text': x} for x in existing_tags.split(' ')], 2))
+    mark = list(batch([{'text': x} for x in existing_tags], 2))
     mark.append([{'text': 'Готово'}])
     reply_markup = {'one_time_keyboard': False,
                     'keyboard': mark,
@@ -220,7 +220,7 @@ def set_price(conn, chat_id, price, *args):
         send_message(chat_id, 'Не получилось сохранить цену, отправь ещё раз. Вот пример: 840.00')
         return
     send_message(chat_id, 'Цена сохранена, выбери хештеги',
-                 get_hashtags_markup(conn, chat_id, get_session(conn, chat_id)['hashtags']))
+                 get_hashtags_markup(conn, chat_id, get_session(conn, chat_id)['hashtags'].split(' ')))
 
 
 def set_description(conn, chat_id, description, *args):
