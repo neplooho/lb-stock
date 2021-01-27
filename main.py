@@ -121,10 +121,11 @@ def build_telegraph_and_return_link(conn, chat_id, *args):
     images_content = '\n'.join(["<img src = '{}' />".format(x) for x in paths])
     html_content = images_content + '<p>Цена: ' + str(session['price']) + '</p>\n<p>' + session['description'] + '</p>'
     response = telegraph.create_page(session['title'], html_content=html_content)
-    clear_session(conn, chat_id)  # clear order data
+    clear_session(conn, chat_id)  # todo not clear but save message and on publish send it to feed
     send_message(chat_id, response['url'] + '\n' + ' '.join([x[1:] for x in session['hashtags'].split(' ') if
                                                              x[0] == green_check_mark]) + '\n@' + str(args[0]),
-                 reply_markup=remove_markup)
+                 reply_markup={'one_time_keyboard': True, 'keyboard': [
+                     [{'text': 'Отправить'}]], 'resize_keyboard': True})
 
 
 def is_ready_to_finish(session):
@@ -309,8 +310,7 @@ def main():
             [{'text': 'Посмотреть'}, {'text': 'Отправить'}]], 'resize_keyboard': True})
     elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Посмотреть':
         build_telegraph_and_return_link(conn, chat_id, data['message']['from']['username'])
-        send_message(chat_id, None, reply_markup={'one_time_keyboard': True, 'keyboard': [
-            [{'text': 'Отправить'}]], 'resize_keyboard': True})
+
     elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Отправить':
         # todo forward post to admins
         pass
