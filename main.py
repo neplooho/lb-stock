@@ -66,7 +66,10 @@ def format_session_to_text(session):
 
 def create_session(conn, chat_id, *args):
     cur = conn.cursor()
-    cur.execute("INSERT OR REPLACE INTO stock_sessions (chat_id, step) VALUES ({}, '/title');".format(chat_id))
+    default_tags = ' '.join([red_x + x for x in possible_hashtags])
+    cur.execute(
+        "INSERT OR REPLACE INTO stock_sessions (chat_id, step, hashtags) VALUES ({}, '/title', '" + default_tags + "');".format(
+            chat_id))
 
 
 def update_session_step(conn, chat_id, step, *args):
@@ -170,8 +173,8 @@ def batch(iterable, n=1):
         yield iterable[ndx:min(ndx + n, l)]
 
 
-def get_hashtags_markup(conn, chat_id):
-    mark = list(batch([{'text': x} for x in [red_x + x for x in possible_hashtags]], 2))
+def get_hashtags_markup(conn, chat_id, existing_tags):
+    mark = list(batch([{'text': x} for x in existing_tags], 2))
     mark.append([{'text': 'Готово'}])
     reply_markup = {'one_time_keyboard': False,
                     'keyboard': mark,
@@ -195,14 +198,14 @@ def toggle_hashtag(conn, chat_id, hashtag, *args):  # todo: react to single hash
         existing_tags = []
     if hashtag in existing_tags:
         existing_tags.remove(hashtag)
-    existing_tags.append(get_inverted_emoji(hashtag[0]))
+    existing_tags.append(get_inverted_emoji(hashtag[0]) + hashtag[1:])
     res = ' '.join(existing_tags)
     if not res.strip():
         send_message(chat_id, 'Я не знаю таких хештегов, выбери из списка',
-                     reply_markup=get_hashtags_markup(conn, chat_id))
+                     reply_markup=get_hashtags_markup(conn, chat_id, existing_tags))
     else:
         cur.execute(
-            "UPDATE stock_sessions SET step = '/ready', hashtags = '" + res + "' WHERE chat_id = " + str(chat_id))
+            "UPDATE stock_sessions SET hashtags = '" + res + "' WHERE chat_id = " + str(chat_id))
 
 
 def set_price(conn, chat_id, price, *args):
@@ -231,7 +234,6 @@ def add_image(conn, chat_id, file_path, *args):
         "INSERT OR REPLACE INTO images (image_path, chat_id) VALUES ('" + file_path + "', " + str(chat_id) + ");")
     send_message(chat_id, "Круто, картинка добавлена", reply_markup={'one_time_keyboard': True, 'keyboard': [
         [{'text': 'Я добавил все картинки, перейти дальше'}]], 'resize_keyboard': True})
-    # TODO: add button to break image addition
 
 
 options = {'/title': (ask_for_title, set_title),
