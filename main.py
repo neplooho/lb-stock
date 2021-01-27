@@ -188,7 +188,11 @@ def get_inverted_emoji(char):
 
 def toggle_hashtag(conn, chat_id, hashtag, *args):  # todo: react to single hashtag, update it's check status
     cur = conn.cursor()
-    existing_tags = get_session(conn, chat_id)['hashtags'].split(' ')
+    tags = get_session(conn, chat_id)['hashtags']
+    if tags is not None:
+        existing_tags = get_session(conn, chat_id)['hashtags'].split(' ')
+    else:
+        existing_tags = []
     if hashtag in existing_tags:
         existing_tags.remove(hashtag)
         existing_tags.append(get_inverted_emoji(hashtag[0]))
