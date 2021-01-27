@@ -195,7 +195,7 @@ def toggle_hashtag(conn, chat_id, hashtag, *args):  # todo: react to single hash
         existing_tags = []
     if hashtag in existing_tags:
         existing_tags.remove(hashtag)
-        existing_tags.append(get_inverted_emoji(hashtag[0]))
+    existing_tags.append(get_inverted_emoji(hashtag[0]))
     res = ' '.join(existing_tags)
     if not res.strip():
         send_message(chat_id, 'Я не знаю таких хештегов, выбери из списка',
