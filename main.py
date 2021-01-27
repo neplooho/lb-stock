@@ -18,6 +18,7 @@ possible_hashtags = set(
     "#лбкиїв_компліт #лбкиїв_підвіси #лбкиїв_колеса #лбкиїв_дека #лбкиїв_інше #лбкиїв_захист".split(' '))
 green_check_mark = '✔'
 red_x = '❌'
+remove_markup = {'remove_keyboard': True}
 
 
 def create_connection(db_file):
@@ -78,28 +79,30 @@ def update_session_step(conn, chat_id, step, *args):
 
 
 def ask_for_title(conn, chat_id, *args):
-    send_message(chat_id, "Отправьте заголовок для вашего объявления")
+    send_message(chat_id, "Отправьте заголовок для вашего объявления", reply_markup=remove_markup)
     update_session_step(conn, chat_id, '/title')
 
 
 def ask_for_hashtags(conn, chat_id, *args):
     send_message(chat_id,
-                 "Отправьте в одном сообщении хештеги через пробел\nВозможные хештеги:\n" + ' '.join(possible_hashtags))
+                 "Отправьте в одном сообщении хештеги через пробел\nВозможные хештеги:\n" + ' '.join(possible_hashtags),
+                 reply_markup=remove_markup)
     update_session_step(conn, chat_id, '/hashtags')
 
 
 def ask_for_price(conn, chat_id, *args):
-    send_message(chat_id, "Отправьте примерную цену в гривнах (это должно быть число а не диапазон от и до)")
+    send_message(chat_id, "Отправьте примерную цену в гривнах (это должно быть число а не диапазон от и до)",
+                 reply_markup=remove_markup)
     update_session_step(conn, chat_id, '/price')
 
 
 def ask_for_description(conn, chat_id, *args):
-    send_message(chat_id, "Отправьте описание в одном сообщении для вашего объявления")
+    send_message(chat_id, "Отправьте описание в одном сообщении для вашего объявления", reply_markup=remove_markup)
     update_session_step(conn, chat_id, '/description')
 
 
 def ask_for_images(conn, chat_id, *args):
-    send_message(chat_id, "Отправьте картинки файлами")
+    send_message(chat_id, "Отправьте картинки файлами", reply_markup=remove_markup)
     update_session_step(conn, chat_id, '/images')
 
 
@@ -107,7 +110,8 @@ def build_telegraph_and_return_link(conn, chat_id, *args):
     session = get_session(conn, chat_id)
     if not is_ready_to_finish(session):
         missing_values = get_missing_values(session)
-        send_message(chat_id, 'Зполните пожалуйсте следующие поля:\n' + ', '.join(missing_values))
+        send_message(chat_id, 'Зполните пожалуйсте следующие поля:\n' + ', '.join(missing_values),
+                     remove_markup=remove_markup)
         return
     links_to_download = [FILE_URL + x for x in session['images']]
     image_binaries = [requests.get(x).content for x in links_to_download]
@@ -119,7 +123,8 @@ def build_telegraph_and_return_link(conn, chat_id, *args):
     response = telegraph.create_page(session['title'], html_content=html_content)
     clear_session(conn, chat_id)  # clear order data
     send_message(chat_id, response['url'] + '\n' + ' '.join([x[1:] for x in session['hashtags'].split(' ') if
-                                                    x[0] == green_check_mark]) + '\n@' + str(args[0]))
+                                                             x[0] == green_check_mark]) + '\n@' + str(args[0]),
+                 reply_markup=remove_markup)
 
 
 def is_ready_to_finish(session):
@@ -157,7 +162,7 @@ def send_available_options(chat_id):
 /price - Указать цену
 /description - Добавить описание
 /images - Добавить картинки
-/finish - Отправить объявление на рассмотрение""")
+/finish - Отправить объявление на рассмотрение""", reply_markup=remove_markup)
 
 
 def set_title(conn, chat_id, title, *args):
@@ -165,7 +170,7 @@ def set_title(conn, chat_id, title, *args):
     cur.execute("UPDATE stock_sessions SET step = '/description', title = '" + title.replace('\'',
                                                                                              '\'\'') + "' WHERE chat_id = " + str(
         chat_id))
-    send_message(chat_id, "Отлично, а описание?")
+    send_message(chat_id, "Отлично, а описание?", reply_markup=remove_markup)
 
 
 def batch(iterable, n=1):
@@ -217,7 +222,8 @@ def set_price(conn, chat_id, price, *args):
             "UPDATE stock_sessions SET step = '/hashtags', price = " + price + " WHERE chat_id = " + str(chat_id))
     except sqlite3.OperationalError as e:
         print(type(e))
-        send_message(chat_id, 'Не получилось сохранить цену, отправь ещё раз. Вот пример: 840.00')
+        send_message(chat_id, 'Не получилось сохранить цену, отправь ещё раз. Вот пример: 840.00',
+                     reply_markup=remove_markup)
         return
     send_message(chat_id, 'Цена сохранена, выбери хештеги',
                  get_hashtags_markup(conn, chat_id, get_session(conn, chat_id)['hashtags'].split(' ')))
@@ -228,7 +234,7 @@ def set_description(conn, chat_id, description, *args):
     cur.execute("UPDATE stock_sessions SET step = '/images', description = '" + description.replace('\'',
                                                                                                     '\'\'') + "' WHERE chat_id = " + str(
         chat_id))
-    send_message(chat_id, "Отличное описание, выгрузи теперь картинки файлами")
+    send_message(chat_id, "Отличное описание, выгрузи теперь картинки файлами", reply_markup=remove_markup)
 
 
 def add_image(conn, chat_id, file_path, *args):
@@ -276,13 +282,13 @@ def main():
     print(data['message'])
     if 'text' in data['message'] and data['message']['text'] == '/new':
         create_session(conn, chat_id)
-        send_message(chat_id, "Какой будет заголовок?")
+        send_message(chat_id, "Какой будет заголовок?", reply_markup=remove_markup)
         conn.commit()
         conn.close()
         return Response('Duck says meow')
     session = get_session(conn, chat_id)
     if session is None:
-        send_message(chat_id, "Сначала создайте новое объявление с помощью /new")
+        send_message(chat_id, "Сначала создайте новое объявление с помощью /new", reply_markup=remove_markup)
         conn.close()
         return Response('Duck says meow')
     if session['step'] == '/images' and 'document' in data['message']:
@@ -296,7 +302,7 @@ def main():
         'text'] == 'Я добавил все картинки, перейти дальше':
         update_session_step(conn, chat_id, '/price')
         send_message(chat_id, 'Такс, и сколько ты за это хочешь?',
-                     reply_markup={'remove_keyboard': True})  # todo: handle invalid prices
+                     reply_markup=remove_markup)
     elif session['step'] == '/hashtags' and 'text' in data['message'] and data['message']['text'] == 'Готово':
         update_session_step(conn, chat_id, '/ready')
         send_message(chat_id, "Готово!", reply_markup={'one_time_keyboard': True, 'keyboard': [
