@@ -179,10 +179,20 @@ def get_hashtags_markup(conn, chat_id):
     return reply_markup
 
 
-def set_hashtags(conn, chat_id, hashtags, *args): #todo: react to single hashtag, update it's check status
+def get_inverted_emoji(char):
+    if char == red_x:
+        return green_check_mark
+    else:
+        return red_x
+
+
+def toggle_hashtag(conn, chat_id, hashtag, *args):  # todo: react to single hashtag, update it's check status
     cur = conn.cursor()
-    new_hashtags = set(hashtags.strip().split(' '))
-    res = ' '.join([x for x in new_hashtags if x in possible_hashtags])
+    existing_tags = get_session(conn, chat_id)['hashtags'].split(' ')
+    if hashtag in existing_tags:
+        existing_tags.remove(hashtag)
+        existing_tags.append(get_inverted_emoji(hashtag[0]))
+    res = ' '.join(existing_tags)
     if not res.strip():
         send_message(chat_id, 'Я не знаю таких хештегов, выбери из списка',
                      reply_markup=get_hashtags_markup(conn, chat_id))
@@ -221,7 +231,7 @@ def add_image(conn, chat_id, file_path, *args):
 
 
 options = {'/title': (ask_for_title, set_title),
-           '/hashtags': (ask_for_hashtags, set_hashtags),
+           '/hashtags': (ask_for_hashtags, toggle_hashtag),
            '/price': (ask_for_price, set_price),
            '/description': (ask_for_description, set_description),
            '/images': (ask_for_images, add_image),
@@ -278,6 +288,9 @@ def main():
         update_session_step(conn, chat_id, '/price')
         send_message(chat_id, 'Такс, и сколько ты за это хочешь?',
                      reply_markup={'remove_keyboard': True})  # todo: handle invalid prices
+    elif session['step'] == '/hashtags' and 'text' in data['message'] and data['message']['text'] == 'Готово':
+        update_session_step(conn, chat_id, '/ready', reply_markup={'one_time_keyboard': True, 'keyboard': [
+            [{'text': 'Посмотреть'}, {'text': 'Отправить'}]], 'resize_keyboard': True})
     else:
         options[session['step']][1](conn, chat_id, data['message']['text'])
 
