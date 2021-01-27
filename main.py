@@ -217,7 +217,8 @@ def set_price(conn, chat_id, price, *args):
         print(type(e))
         send_message(chat_id, 'Не получилось сохранить цену, отправь ещё раз. Вот пример: 840.00')
         return
-    send_message(chat_id, 'Цена сохранена, выбери хештеги')
+    send_message(chat_id, 'Цена сохранена, выбери хештеги',
+                 get_hashtags_markup(conn, chat_id, get_session(conn, chat_id)['hashtags']))
 
 
 def set_description(conn, chat_id, description, *args):
