@@ -199,7 +199,6 @@ def toggle_hashtag(conn, chat_id, hashtag, *args):  # todo: react to single hash
     if hashtag in existing_tags:
         existing_tags.remove(hashtag)
     existing_tags.append(get_inverted_emoji(hashtag[0]) + hashtag[1:])
-    send_message(chat_id, ' '.join(existing_tags))
     res = ' '.join(existing_tags)
     if not res.strip():
         send_message(chat_id, 'Я не знаю таких хештегов, выбери из списка',
@@ -207,6 +206,7 @@ def toggle_hashtag(conn, chat_id, hashtag, *args):  # todo: react to single hash
     else:
         cur.execute(
             "UPDATE stock_sessions SET hashtags = '" + res + "' WHERE chat_id = " + str(chat_id))
+        send_message(chat_id, hashtag, reply_markup=get_hashtags_markup(conn, chat_id, existing_tags))
 
 
 def set_price(conn, chat_id, price, *args):
