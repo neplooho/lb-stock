@@ -300,6 +300,13 @@ def main():
         update_session_step(conn, chat_id, '/ready')
         send_message(chat_id, "Готово!", reply_markup={'one_time_keyboard': True, 'keyboard': [
             [{'text': 'Посмотреть'}, {'text': 'Отправить'}]], 'resize_keyboard': True})
+    elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Посмотреть':
+        build_telegraph_and_return_link(conn, chat_id)
+        send_message(chat_id, None, reply_markup={'one_time_keyboard': True, 'keyboard': [
+            [{'text': 'Отправить'}]], 'resize_keyboard': True})
+    elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Отправить':
+        #todo forward post to admins
+        pass
     else:
         options[session['step']][1](conn, chat_id, data['message']['text'])
 
