@@ -174,7 +174,7 @@ def batch(iterable, n=1):
 
 
 def get_hashtags_markup(conn, chat_id, existing_tags):
-    mark = list(batch([{'text': x} for x in existing_tags], 2))
+    mark = list(batch([{'text': x} for x in existing_tags.split(' ')], 2))
     mark.append([{'text': 'Готово'}])
     reply_markup = {'one_time_keyboard': False,
                     'keyboard': mark,
@@ -199,6 +199,7 @@ def toggle_hashtag(conn, chat_id, hashtag, *args):  # todo: react to single hash
     if hashtag in existing_tags:
         existing_tags.remove(hashtag)
     existing_tags.append(get_inverted_emoji(hashtag[0]) + hashtag[1:])
+    send_message(chat_id, ' '.join(existing_tags))
     res = ' '.join(existing_tags)
     if not res.strip():
         send_message(chat_id, 'Я не знаю таких хештегов, выбери из списка',
