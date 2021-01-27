@@ -174,7 +174,7 @@ def batch(iterable, n=1):
 
 
 def get_hashtags_markup(conn, chat_id, existing_tags):
-    mark = list(batch([{'text': x} for x in existing_tags.split(' ')], 2))
+    mark = list(batch([{'text': x} for x in existing_tags], 2))
     mark.append([{'text': 'Готово'}])
     reply_markup = {'one_time_keyboard': False,
                     'keyboard': mark,
@@ -297,7 +297,8 @@ def main():
         send_message(chat_id, 'Такс, и сколько ты за это хочешь?',
                      reply_markup={'remove_keyboard': True})  # todo: handle invalid prices
     elif session['step'] == '/hashtags' and 'text' in data['message'] and data['message']['text'] == 'Готово':
-        update_session_step(conn, chat_id, '/ready', reply_markup={'one_time_keyboard': True, 'keyboard': [
+        update_session_step(conn, chat_id, '/ready')
+        send_message(chat_id, "Готово!", reply_markup={'one_time_keyboard': True, 'keyboard': [
             [{'text': 'Посмотреть'}, {'text': 'Отправить'}]], 'resize_keyboard': True})
     else:
         options[session['step']][1](conn, chat_id, data['message']['text'])
