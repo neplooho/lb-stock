@@ -341,7 +341,7 @@ def main():
             options[session['step']][1](conn, chat_id, data['message']['text'])
         conn.commit()
         return Response('Duck says meow')
-    except Exception as e:
+    except sqlite3.OperationalError as e:
         f.write(str(e) + '\n')
         send_message(chat_id, "Ты что-то не то отправил, попробуй ещё раз или вызови /help")
         return Response("Quack")
