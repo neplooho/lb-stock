@@ -314,6 +314,8 @@ def main():
             update_session_step(conn, chat_id, '/price')
             send_message(chat_id, 'Такс, и сколько ты за это хочешь?',
                          reply_markup=remove_markup)
+        elif session['step'] == '/images' and 'document' not in data['message']:
+            raise Exception('No image supplied on image step')
         elif session['step'] == '/hashtags' and 'text' in data['message'] and data['message']['text'] == 'Готово':
             update_session_step(conn, chat_id, '/ready')
             send_message(chat_id, "Готово!", reply_markup={'one_time_keyboard': True, 'keyboard': [
