@@ -227,7 +227,9 @@ def set_price(conn, chat_id, price, *args):
     cur = conn.cursor()
     try:
         if price < 0:
-            raise sqlite3.OperationalError("negative number not allowed")
+            send_message(chat_id,
+                         "Ты указали число меньше ноля, давай по новой")
+            return
         cur.execute(
             "UPDATE stock_sessions SET step = '/hashtags', price = " + price + " WHERE chat_id = " + str(chat_id))
     except sqlite3.OperationalError as e:
