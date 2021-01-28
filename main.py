@@ -119,9 +119,7 @@ def build_telegraph_and_return_link(conn, chat_id, *args):
         return
     links_to_download = [FILE_URL + x for x in session['images']]
     image_binaries = [requests.get(x).content for x in links_to_download]
-    paths = [x['src'] for x in requests.post('https://telegra.ph/upload',
-                                             files={str(k): ('file', v, 'image/jpeg') for k, v in
-                                                    enumerate(image_binaries)}).json()]
+    paths = [x['src'] for x in requests.post('https://telegra.ph/upload', files={str(k): ('file', v, 'image/jpeg') for k, v in enumerate(image_binaries)}).json()]
     images_content = '\n'.join(["<img src = '{}' />".format(x) for x in paths])
     if session['price'].split('.')[1] == '00':
         price = session['price'].split('.')[0]
@@ -343,7 +341,7 @@ def main():
             options[session['step']][1](conn, chat_id, data['message']['text'])
         conn.commit()
         return Response('Duck says meow')
-    except Exception as e:
+    except sqlite3.OperationalError as e:
         f.write(str(e) + '\n')
         send_message(chat_id, "Ты что-то не то отправил, попробуй ещё раз или вызови /help")
         return Response("Quack")

@@ -4,3 +4,4 @@ lb-stock/
 secrets
 database/db.sqlite
 *.jpg
+*.png
