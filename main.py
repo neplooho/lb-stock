@@ -309,6 +309,12 @@ def main():
         conn.close()
         return Response("Duck says meow")
     try:
+        if 'text' in data['message'] and data['message']['text'] == '/start':
+            create_session(conn, chat_id)
+            send_message(chat_id, "Какой будет заголовок?", reply_markup=remove_markup)
+            conn.commit()
+            conn.close()
+            return Response('Duck says meow')
         if 'text' in data['message'] and data['message']['text'] == '/help':
             send_message(chat_id, help_message)
             conn.close()
