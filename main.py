@@ -112,6 +112,7 @@ def ask_for_images(conn, chat_id, *args):
 
 def build_telegraph_and_return_link(conn, chat_id, *args):
     session = get_session(conn, chat_id)
+    session['price'] = ":.2f".format(session['price'])
     if not is_ready_to_finish(session):
         missing_values = get_missing_values(session)
         send_message(chat_id, 'Зполните пожалуйсте следующие поля:\n' + ', '.join(missing_values),
