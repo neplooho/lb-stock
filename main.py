@@ -312,6 +312,9 @@ def main():
             conn.commit()
             conn.close()
             return Response('Duck says meow')
+        elif session['step'] == '/images' and 'document' not in data['message'] and 'text' in data['message'] and \
+                data['message']['text'] != 'Я добавил все картинки, перейти дальше':
+            set_message(chat_id, 'Картинки, а не текст, пожалуйсто')
         elif session['step'] == '/images' and 'text' in data['message'] and data['message'][
             'text'] == 'Я добавил все картинки, перейти дальше':
             update_session_step(conn, chat_id, '/price')
