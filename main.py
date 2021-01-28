@@ -212,7 +212,7 @@ def toggle_hashtag(conn, chat_id, hashtag, *args):
         return
     cur = conn.cursor()
     existing_tags = get_session(conn, chat_id)['hashtags'].split(' ')
-    existing_tags[existing_tags.index(hashtag)] = get_inverted_emoji(hashtag[0] + hashtag[1:])
+    existing_tags[existing_tags.index(hashtag)] = get_inverted_emoji(hashtag[0]) + hashtag[1:]
     res = ' '.join(existing_tags)
     if not res.strip():
         send_message(chat_id, 'Я не знаю таких хештегов, выбери из списка',
@@ -226,6 +226,8 @@ def toggle_hashtag(conn, chat_id, hashtag, *args):
 def set_price(conn, chat_id, price, *args):
     cur = conn.cursor()
     try:
+        if price < 0:
+            raise sqlite3.OperationalError("negative number not allowed")
         cur.execute(
             "UPDATE stock_sessions SET step = '/hashtags', price = " + price + " WHERE chat_id = " + str(chat_id))
     except sqlite3.OperationalError as e:
