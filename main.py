@@ -22,6 +22,11 @@ red_x = '❌'
 remove_markup = {'remove_keyboard': True}
 f = open("messages.txt", "a", buffering=BUFFER_SIZE)
 admin_chat_id = -1001458437695
+help_message = """Как со мной общаться? Тыкаешь /new а дальше я сам у тебя буду спрашивать всё что мне нужно
+Примечания: 
+Цену нужно указывать одним числом. 
+Хештеги выбираются кнопочками, если у хештега стоит галочка то он будет добавлен в объявление.
+Хештеги в боте не обязательны но лучше добавить потому что не факт что объявление без хештегов пройдёт модерацию строгого админа"""
 
 
 def create_connection(db_file):
@@ -304,7 +309,12 @@ def main():
         conn.close()
         return Response("Duck says meow")
     try:
-        if 'text' in data['message'] and data['message']['text'] == '/new':
+        if 'text' in data['message'] and data['message']['text'] == '/help':
+            send_message(chat_id, help_message)
+            conn.close()
+            return Response('Duck says meow')
+
+        elif 'text' in data['message'] and data['message']['text'] == '/new':
             create_session(conn, chat_id)
             send_message(chat_id, "Какой будет заголовок?", reply_markup=remove_markup)
             conn.commit()
