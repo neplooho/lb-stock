@@ -7,8 +7,8 @@ from sqlite3 import Error
 import sqlite3
 import requests
 from telegraph import Telegraph
-import logging
 
+BUFFER_SIZE = 1
 telegraph = Telegraph()
 telegraph.create_account(short_name='Барахолка')
 app = Flask(__name__)
@@ -20,7 +20,7 @@ possible_hashtags = set(
 green_check_mark = '✔'
 red_x = '❌'
 remove_markup = {'remove_keyboard': True}
-logging.basicConfig(filename='errors.log', encoding='utf-8', level=logging.ERROR)
+f = open("messages.txt", "a", buffering=BUFFER_SIZE)
 admin_chat_id = -1001458437695
 
 
@@ -178,9 +178,11 @@ def set_title(conn, chat_id, title, *args):
         chat_id))
     send_message(chat_id, "Отлично, а описание?", reply_markup=remove_markup)
 
+
 def set_message(conn, chat_id, message):
     cur = conn.cursor()
-    cur.execute("UPDATE stock_sessions SET message = '" +message + "' WHERE chat_id = " + str(chat_id))
+    cur.execute("UPDATE stock_sessions SET message = '" + message + "' WHERE chat_id = " + str(chat_id))
+
 
 def batch(iterable, n=1):
     l = len(iterable)
@@ -322,8 +324,9 @@ def main():
         elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Посмотреть':
             build_telegraph_and_return_link(conn, chat_id, data['message']['from']['username'])
         elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Отправить':
-            send_message(chat_id, "Отправлено на рассмотрение, чтобы создать новое тыкни /new", reply_markup={'one_time_keyboard': True, 'keyboard': [
-                [{'text': '/new'}]], 'resize_keyboard': True})
+            send_message(chat_id, "Отправлено на рассмотрение, чтобы создать новое тыкни /new",
+                         reply_markup={'one_time_keyboard': True, 'keyboard': [
+                             [{'text': '/new'}]], 'resize_keyboard': True})
             send_message(admin_chat_id, session['message'])
             clear_session(conn, chat_id)
         else:
@@ -331,7 +334,7 @@ def main():
         conn.commit()
         return Response('Duck says meow')
     except Exception as e:
-        logging.error(e)
+        f.write(str(e) + '\n')
         send_message(chat_id, "Что-то пошло не так")
     finally:
         conn.close()
