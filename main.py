@@ -141,6 +141,8 @@ def build_telegraph_and_return_link(conn, chat_id, *args):
 
 def is_ready_to_finish(session):
     for key, value in session.items():
+        if key == 'message':
+            continue
         if value is None:
             return False
         if key == 'images' and len(value) == 0:
