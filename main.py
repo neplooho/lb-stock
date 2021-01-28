@@ -123,7 +123,13 @@ def build_telegraph_and_return_link(conn, chat_id, *args):
                                              files={str(k): ('file', v, 'image/jpeg') for k, v in
                                                     enumerate(image_binaries)}).json()]
     images_content = '\n'.join(["<img src = '{}' />".format(x) for x in paths])
-    html_content = images_content + '<p>Цена: ' + str(session['price']) + '</p>\n<p>' + session['description'] + '</p>'
+    if session['price'].split('.')[1] == '00':
+        price = session['price'].split('.')[0]
+    else:
+        price = str(session['price'])
+
+    html_content = images_content + '<p>Цена: ' + price + '</p>\n<p>' + session['description'] + '</p>\n<p>@' + str(
+        args[0]) + '</p>'
     response = telegraph.create_page(session['title'], html_content=html_content)
     response_message = response['url'] + '\n' + ' '.join([x[1:] for x in session['hashtags'].split(' ') if
                                                           x[0] == green_check_mark]) + '\n@' + str(args[0])
@@ -226,13 +232,12 @@ def toggle_hashtag(conn, chat_id, hashtag, *args):
 def set_price(conn, chat_id, price, *args):
     cur = conn.cursor()
     try:
-        if price < 0:
-            send_message(chat_id,
-                         "Ты указали число меньше ноля, давай по новой")
+        if float(price) < 0:
+            send_message(chat_id, "Нужно число больше ноля")
             return
         cur.execute(
             "UPDATE stock_sessions SET step = '/hashtags', price = " + price + " WHERE chat_id = " + str(chat_id))
-    except sqlite3.OperationalError as e:
+    except Exception as e:
         print(type(e))
         send_message(chat_id, 'Не получилось сохранить цену, отправь ещё раз. Вот пример: 840.00',
                      reply_markup=remove_markup)
