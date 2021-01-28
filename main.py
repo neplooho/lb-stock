@@ -214,7 +214,7 @@ def get_inverted_emoji(char):
 
 def toggle_hashtag(conn, chat_id, hashtag, *args):
     if hashtag[1:] not in possible_hashtags:
-        set_message(conn, chat_id, "На кнопки тыкай, пожалуйсто")
+        send_message(conn, chat_id, "На кнопки тыкай, пожалуйсто")
         return
     cur = conn.cursor()
     existing_tags = get_session(conn, chat_id)['hashtags'].split(' ')
@@ -233,7 +233,7 @@ def set_price(conn, chat_id, price, *args):
     cur = conn.cursor()
     try:
         if float(price) < 0:
-            send_message(chat_id, "Нужно число больше ноля")
+            send_message(chat_id, "Нужно число больше или равно нолю")
             return
         cur.execute(
             "UPDATE stock_sessions SET step = '/hashtags', price = " + price + " WHERE chat_id = " + str(chat_id))
