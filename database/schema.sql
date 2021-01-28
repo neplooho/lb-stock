@@ -7,7 +7,8 @@ create table stock_sessions
     hashtags TEXT,
     price REAL,
     description TEXT,
-    step TEXT not null
+    step TEXT not null,
+    message TEXT
 );
 
 create table images

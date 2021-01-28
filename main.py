@@ -7,6 +7,7 @@ from sqlite3 import Error
 import sqlite3
 import requests
 from telegraph import Telegraph
+import logging
 
 telegraph = Telegraph()
 telegraph.create_account(short_name='Барахолка')
@@ -19,6 +20,8 @@ possible_hashtags = set(
 green_check_mark = '✔'
 red_x = '❌'
 remove_markup = {'remove_keyboard': True}
+logging.basicConfig(filename='errors.log', encoding='utf-8', level=logging.ERROR)
+admin_chat_id = -1001458437695
 
 
 def create_connection(db_file):
@@ -44,7 +47,8 @@ def get_session(conn, chat_id):
                 'price': row[3],
                 'description': row[4],
                 'step': row[5],
-                'images': images}
+                'images': images,
+                'message': row[6]}
     else:
         return None
 
@@ -121,9 +125,10 @@ def build_telegraph_and_return_link(conn, chat_id, *args):
     images_content = '\n'.join(["<img src = '{}' />".format(x) for x in paths])
     html_content = images_content + '<p>Цена: ' + str(session['price']) + '</p>\n<p>' + session['description'] + '</p>'
     response = telegraph.create_page(session['title'], html_content=html_content)
-    clear_session(conn, chat_id)  # todo not clear but save message and on publish send it to feed
-    send_message(chat_id, response['url'] + '\n' + ' '.join([x[1:] for x in session['hashtags'].split(' ') if
-                                                             x[0] == green_check_mark]) + '\n@' + str(args[0]),
+    response_message = response['url'] + '\n' + ' '.join([x[1:] for x in session['hashtags'].split(' ') if
+                                                          x[0] == green_check_mark]) + '\n@' + str(args[0])
+    set_message(conn, chat_id, response_message)
+    send_message(chat_id, response_message,
                  reply_markup={'one_time_keyboard': True, 'keyboard': [
                      [{'text': 'Отправить'}]], 'resize_keyboard': True})
 
@@ -173,6 +178,9 @@ def set_title(conn, chat_id, title, *args):
         chat_id))
     send_message(chat_id, "Отлично, а описание?", reply_markup=remove_markup)
 
+def set_message(conn, chat_id, message):
+    cur = conn.cursor()
+    cur.execute("UPDATE stock_sessions SET message = '" +message + "' WHERE chat_id = " + str(chat_id))
 
 def batch(iterable, n=1):
     l = len(iterable)
@@ -280,59 +288,53 @@ def main():
     conn = create_connection(database_path)
     data = request.get_json()
     chat_id = int(data['message']['chat']['id'])
-    print(data['message'])
-    if 'text' in data['message'] and data['message']['text'] == '/new':
-        create_session(conn, chat_id)
-        send_message(chat_id, "Какой будет заголовок?", reply_markup=remove_markup)
+    if chat_id == admin_chat_id:
+        conn.close()
+        return Response("Duck says meow")
+    try:
+        if 'text' in data['message'] and data['message']['text'] == '/new':
+            create_session(conn, chat_id)
+            send_message(chat_id, "Какой будет заголовок?", reply_markup=remove_markup)
+            conn.commit()
+            conn.close()
+            return Response('Duck says meow')
+        session = get_session(conn, chat_id)
+        if session is None:
+            send_message(chat_id, "Сначала создайте новое объявление с помощью /new", reply_markup=remove_markup)
+            conn.close()
+            return Response('Duck says meow')
+        if session['step'] == '/images' and 'document' in data['message']:
+            file_id = data['message']['document']['file_id']
+            file_path = requests.get(BOT_URL + 'getFile?file_id=' + file_id).json()['result']['file_path']
+            add_image(conn, chat_id, file_path)
+            conn.commit()
+            conn.close()
+            return Response('Duck says meow')
+        elif session['step'] == '/images' and 'text' in data['message'] and data['message'][
+            'text'] == 'Я добавил все картинки, перейти дальше':
+            update_session_step(conn, chat_id, '/price')
+            send_message(chat_id, 'Такс, и сколько ты за это хочешь?',
+                         reply_markup=remove_markup)
+        elif session['step'] == '/hashtags' and 'text' in data['message'] and data['message']['text'] == 'Готово':
+            update_session_step(conn, chat_id, '/ready')
+            send_message(chat_id, "Готово!", reply_markup={'one_time_keyboard': True, 'keyboard': [
+                [{'text': 'Посмотреть'}, {'text': 'Отправить'}]], 'resize_keyboard': True})
+        elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Посмотреть':
+            build_telegraph_and_return_link(conn, chat_id, data['message']['from']['username'])
+        elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Отправить':
+            send_message(chat_id, "Отправлено на рассмотрение, чтобы создать новое тыкни /new", reply_markup={'one_time_keyboard': True, 'keyboard': [
+                [{'text': '/new'}]], 'resize_keyboard': True})
+            send_message(admin_chat_id, session['message'])
+            clear_session(conn, chat_id)
+        else:
+            options[session['step']][1](conn, chat_id, data['message']['text'])
         conn.commit()
-        conn.close()
         return Response('Duck says meow')
-    session = get_session(conn, chat_id)
-    if session is None:
-        send_message(chat_id, "Сначала создайте новое объявление с помощью /new", reply_markup=remove_markup)
+    except Exception as e:
+        logging.error(e)
+        send_message(chat_id, "Что-то пошло не так")
+    finally:
         conn.close()
-        return Response('Duck says meow')
-    if session['step'] == '/images' and 'document' in data['message']:
-        file_id = data['message']['document']['file_id']
-        file_path = requests.get(BOT_URL + 'getFile?file_id=' + file_id).json()['result']['file_path']
-        add_image(conn, chat_id, file_path)
-        conn.commit()
-        conn.close()
-        return Response('Duck says meow')
-    elif session['step'] == '/images' and 'text' in data['message'] and data['message'][
-        'text'] == 'Я добавил все картинки, перейти дальше':
-        update_session_step(conn, chat_id, '/price')
-        send_message(chat_id, 'Такс, и сколько ты за это хочешь?',
-                     reply_markup=remove_markup)
-    elif session['step'] == '/hashtags' and 'text' in data['message'] and data['message']['text'] == 'Готово':
-        update_session_step(conn, chat_id, '/ready')
-        send_message(chat_id, "Готово!", reply_markup={'one_time_keyboard': True, 'keyboard': [
-            [{'text': 'Посмотреть'}, {'text': 'Отправить'}]], 'resize_keyboard': True})
-    elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Посмотреть':
-        build_telegraph_and_return_link(conn, chat_id, data['message']['from']['username'])
-
-    elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Отправить':
-        # todo forward post to admins
-        pass
-    else:
-        options[session['step']][1](conn, chat_id, data['message']['text'])
-
-    # text = session['step']
-    # if text in options:
-    #     if text == '/help':
-    #         send_available_options(chat_id)
-    #     else:
-    #         update_session_step(conn, chat_id, step=text)
-    #         options[text][0](conn, chat_id, data['message']['from']['username'])
-    # elif session['step'] != '/new':
-    #     options[session['step']][1](conn, chat_id, text)
-    #     # send_message(chat_id, "Отлично, что дальше?")
-    # else:
-    #     send_message(chat_id, "Я не знаю такой команды как {}".format(text))
-    #     conn.commit()
-    conn.commit()
-    conn.close()
-    return Response('Duck says meow')
 
 
 if __name__ == '__main__':
