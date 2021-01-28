@@ -110,7 +110,7 @@ def ask_for_images(conn, chat_id, *args):
     update_session_step(conn, chat_id, '/images')
 
 
-def build_telegraph_and_return_link(conn, chat_id, *args):
+def build_telegraph_and_return_link(conn, chat_id, return_back, *args):
     session = get_session(conn, chat_id)
     session['price'] = "{:.2f}".format(session['price'])
     if not is_ready_to_finish(session):
@@ -135,7 +135,8 @@ def build_telegraph_and_return_link(conn, chat_id, *args):
     response_message = response['url'] + '\n' + ' '.join([x[1:] for x in session['hashtags'].split(' ') if
                                                           x[0] == green_check_mark]) + '\n@' + str(args[0])
     set_message(conn, chat_id, response_message)
-    send_message(chat_id, response_message,
+    if return_back:
+        send_message(chat_id, response_message,
                  reply_markup={'one_time_keyboard': True, 'keyboard': [
                      [{'text': 'Отправить'}]], 'resize_keyboard': True})
 
@@ -333,12 +334,15 @@ def main():
             send_message(chat_id, "Готово!", reply_markup={'one_time_keyboard': True, 'keyboard': [
                 [{'text': 'Посмотреть'}, {'text': 'Отправить'}]], 'resize_keyboard': True})
         elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Посмотреть':
-            build_telegraph_and_return_link(conn, chat_id, data['message']['from']['username'])
+            build_telegraph_and_return_link(conn, chat_id, True, data['message']['from']['username'])
         elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Отправить':
+            if session['message'] is None:
+                build_telegraph_and_return_link(conn, chat_id, False, data['message']['from']['username'])
+            session = get_session(conn, chat_id)
+            send_message(admin_chat_id, session['message'])
             send_message(chat_id, "Отправлено на рассмотрение, чтобы создать новое тыкни /new",
                          reply_markup={'one_time_keyboard': True, 'keyboard': [
                              [{'text': '/new'}]], 'resize_keyboard': True})
-            send_message(admin_chat_id, session['message'])
             clear_session(conn, chat_id)
         else:
             options[session['step']][1](conn, chat_id, data['message']['text'])
