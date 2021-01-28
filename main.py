@@ -17,7 +17,7 @@ FILE_URL = 'https://api.telegram.org/file/bot{0}/'.format(open('secrets/bot_toke
 database_path = r"database/db.sqlite"
 possible_hashtags = set(
     "#лбкиїв_компліт #лбкиїв_підвіси #лбкиїв_колеса #лбкиїв_дека #лбкиїв_інше #лбкиїв_захист".split(' '))
-green_check_mark = '✔'
+green_check_mark = '✅'
 red_x = '❌'
 remove_markup = {'remove_keyboard': True}
 f = open("messages.txt", "a", buffering=BUFFER_SIZE)
@@ -206,16 +206,13 @@ def get_inverted_emoji(char):
         return red_x
 
 
-def toggle_hashtag(conn, chat_id, hashtag, *args):  # todo: react to single hashtag, update it's check status
+def toggle_hashtag(conn, chat_id, hashtag, *args):
+    if hashtag[1:] not in possible_hashtags:
+        set_message(conn, chat_id, "На кнопки тыкай, пожалуйсто")
+        return
     cur = conn.cursor()
-    tags = get_session(conn, chat_id)['hashtags']
-    if tags is not None:
-        existing_tags = get_session(conn, chat_id)['hashtags'].split(' ')
-    else:
-        existing_tags = []
-    if hashtag in existing_tags:
-        existing_tags.remove(hashtag)
-    existing_tags.append(get_inverted_emoji(hashtag[0]) + hashtag[1:])
+    existing_tags = get_session(conn, chat_id)['hashtags'].split(' ')
+    existing_tags[existing_tags.index(hashtag)] = get_inverted_emoji(hashtag[0] + hashtag[1:])
     res = ' '.join(existing_tags)
     if not res.strip():
         send_message(chat_id, 'Я не знаю таких хештегов, выбери из списка',
@@ -312,9 +309,6 @@ def main():
             conn.commit()
             conn.close()
             return Response('Duck says meow')
-        elif session['step'] == '/images' and 'document' not in data['message'] and 'text' in data['message'] and \
-                data['message']['text'] != 'Я добавил все картинки, перейти дальше':
-            set_message(chat_id, 'Картинки, а не текст, пожалуйсто')
         elif session['step'] == '/images' and 'text' in data['message'] and data['message'][
             'text'] == 'Я добавил все картинки, перейти дальше':
             update_session_step(conn, chat_id, '/price')
