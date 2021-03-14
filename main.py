@@ -137,7 +137,6 @@ def build_telegraph_and_return_link(conn, chat_id, return_back, *args):
     if 'username' in args[0]:
         contact_info = 'Телеграмм: @' + str(args[0]['username'])
     else:
-        print(session['contact'])
         contact_info = 'Контактная информация: ' + session['contact']
     html_content = images_content + '<p>Цена: ' + price + '</p>\n<p>' + session[
         'description'] + '</p>\n<p>' + contact_info + '</p>'
@@ -402,8 +401,8 @@ def main():
         conn.commit()
         return Response('Duck says meow')
     except Exception as e:
-        # f.write(str(e) + '\n')
-        print(e.with_traceback())
+        f.write(str(e) + '\n')
+        # print(e.with_traceback())
         send_message(chat_id, "Ты что-то не то отправил, попробуй ещё раз или вызови /help")
         return Response("Quack")
     finally:
