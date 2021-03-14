@@ -10,6 +10,7 @@ from telegraph import Telegraph
 
 BUFFER_SIZE = 1
 telegraph = Telegraph()
+telegraph.create_account(short_name='Барахолка')
 app = Flask(__name__)
 BOT_URL = 'https://api.telegram.org/bot{0}/'.format(open('secrets/bot_token', 'r').read()[:-1])
 FILE_URL = 'https://api.telegram.org/file/bot{0}/'.format(open('secrets/bot_token', 'r').read()[:-1])
@@ -138,7 +139,6 @@ def build_telegraph_and_return_link(conn, chat_id, return_back, *args):
         username = ''
     html_content = images_content + '<p>Цена: ' + price + '</p>\n<p>' + session[
         'description'] + '</p>\n<p>' + username + '</p>'
-    telegraph.create_account(short_name='Барахолка')
     response = telegraph.create_page(session['title'], html_content=html_content)
     response_message = response['url'] + '\n' + ' '.join([x[1:] for x in session['hashtags'].split(' ') if
                                                           x[0] == green_check_mark]) + '\n' + username
@@ -302,7 +302,6 @@ def is_any_hashtag_present(conn, chat_id):
             return True
     return False
 
-
 @app.before_request
 def before_request():
     if request.url.startswith('http://'):
@@ -366,7 +365,8 @@ def main():
                 send_message(chat_id, "Выбери хотя бы один хештег",
                              reply_markup=get_hashtags_markup(conn, chat_id, existing_tags))
         elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Создать заново':
-            update_session_step(conn, chat_id, '/title')
+            clear_session(conn, chat_id)
+            create_session(conn, chat_id)
             send_message(chat_id, 'Какой будет заголовок?')
         elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Посмотреть':
             build_telegraph_and_return_link(conn, chat_id, True, data['message']['from'])
