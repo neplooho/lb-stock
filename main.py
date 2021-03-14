@@ -134,7 +134,7 @@ def build_telegraph_and_return_link(conn, chat_id, return_back, *args):
     else:
         price = str(session['price'])
     if 'username' in args[0]:
-        contact_info = 'Телеграмм: @' + str(args[0]['username'])
+        contact_info = 'Телеграмм: @' + str(args[0]['from']['username'])
     else:
         contact_info = 'Контактная информация: ' + session['contact']
     html_content = images_content + '<p>Цена: ' + price + '</p>\n<p>' + session[
@@ -385,10 +385,10 @@ def main():
             create_session(conn, chat_id)
             send_message(chat_id, 'Какой будет заголовок?')
         elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Посмотреть':
-            build_telegraph_and_return_link(conn, chat_id, True, data['message']['from'])
+            build_telegraph_and_return_link(conn, chat_id, True, data['message'])
         elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Отправить':
             if session['message'] is None:
-                build_telegraph_and_return_link(conn, chat_id, False, data['message']['from'])
+                build_telegraph_and_return_link(conn, chat_id, False, data['message'])
             session = get_session(conn, chat_id)
             send_message(admin_chat_id, session['message'])
             send_message(chat_id, "Отправлено на рассмотрение, чтобы создать новое тыкни /new",
