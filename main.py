@@ -370,7 +370,7 @@ def main():
             update_session_step(conn, chat_id, '/title')
             send_message(chat_id, 'Какой будет заголовок?')
         elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Посмотреть':
-            build_telegraph_and_return_link(conn, chat_id, True, data['message']['from']['username'])
+            build_telegraph_and_return_link(conn, chat_id, True, data['message']['from'])
         elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Отправить':
             if session['message'] is None:
                 build_telegraph_and_return_link(conn, chat_id, False, data['message']['from'])
