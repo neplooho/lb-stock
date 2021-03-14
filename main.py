@@ -133,17 +133,20 @@ def build_telegraph_and_return_link(conn, chat_id, return_back, *args):
         price = session['price'].split('.')[0]
     else:
         price = str(session['price'])
-
+    if 'username' in args:
+        username = args['username']
+    else:
+        username = ''
     html_content = images_content + '<p>Цена: ' + price + '</p>\n<p>' + session['description'] + '</p>\n<p>@' + str(
-        args[0]) + '</p>'
+        username) + '</p>'
     response = telegraph.create_page(session['title'], html_content=html_content)
     response_message = response['url'] + '\n' + ' '.join([x[1:] for x in session['hashtags'].split(' ') if
-                                                          x[0] == green_check_mark]) + '\n@' + str(args[0])
+                                                          x[0] == green_check_mark]) + '\n@' + str(username)
     set_message(conn, chat_id, response_message)
     if return_back:
         send_message(chat_id, response_message,
-                 reply_markup={'one_time_keyboard': True, 'keyboard': [
-                     [{'text': 'Отправить'}]], 'resize_keyboard': True})
+                     reply_markup={'one_time_keyboard': True, 'keyboard': [
+                         [{'text': 'Создать заново'}, {'text': 'Отправить'}]], 'resize_keyboard': True})
 
 
 def is_ready_to_finish(session):
@@ -292,6 +295,14 @@ def send_message(chat_id, ans, reply_markup=None):
     requests.post(message_url, json=data)
 
 
+def is_any_hashtag_present(conn, chat_id):
+    existing_tags = get_session(conn, chat_id)['hashtags'].split(' ')
+    for tag in existing_tags:
+        if tag[0] == green_check_mark:
+            return True
+    return False
+
+
 @app.before_request
 def before_request():
     if request.url.startswith('http://'):
@@ -346,14 +357,23 @@ def main():
         elif session['step'] == '/images' and 'document' not in data['message']:
             raise Exception('No image supplied on image step')
         elif session['step'] == '/hashtags' and 'text' in data['message'] and data['message']['text'] == 'Готово':
-            update_session_step(conn, chat_id, '/ready')
-            send_message(chat_id, "Готово!", reply_markup={'one_time_keyboard': True, 'keyboard': [
-                [{'text': 'Посмотреть'}, {'text': 'Отправить'}]], 'resize_keyboard': True})
+            # todo check if at leas one hashtag is active
+            if is_any_hashtag_present(conn, chat_id):
+                update_session_step(conn, chat_id, '/ready')
+                send_message(chat_id, "Готово!", reply_markup={'one_time_keyboard': True, 'keyboard': [
+                    [{'text': 'Посмотреть'}, {'text': 'Отправить'}]], 'resize_keyboard': True})
+            else:
+                existing_tags = get_session(conn, chat_id)['hashtags'].split(' ')
+                send_message(chat_id, "Выбери хотя бы один хештег",
+                             reply_markup=get_hashtags_markup(conn, chat_id, existing_tags))
+        elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Создать заново':
+            update_session_step(conn, chat_id, '/title')
+            send_message(chat_id, 'Какой будет заголовок?')
         elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Посмотреть':
             build_telegraph_and_return_link(conn, chat_id, True, data['message']['from']['username'])
         elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Отправить':
             if session['message'] is None:
-                build_telegraph_and_return_link(conn, chat_id, False, data['message']['from']['username'])
+                build_telegraph_and_return_link(conn, chat_id, False, data['message']['from'])
             session = get_session(conn, chat_id)
             send_message(admin_chat_id, session['message'])
             send_message(chat_id, "Отправлено на рассмотрение, чтобы создать новое тыкни /new",
