@@ -121,7 +121,7 @@ def build_telegraph_and_return_link(conn, chat_id, return_back, *args):
     session['price'] = "{:.2f}".format(session['price'])
     if not is_ready_to_finish(session):
         missing_values = get_missing_values(session)
-        send_message(chat_id, 'Зполните пожалуйсте следующие поля:\n' + ', '.join(missing_values),
+        send_message(chat_id, 'Зполните пожалуйста следующие поля:\n' + ', '.join(missing_values),
                      reply_markup=remove_markup)
         return
     links_to_download = [FILE_URL + x for x in session['images']]
@@ -152,7 +152,7 @@ def build_telegraph_and_return_link(conn, chat_id, return_back, *args):
 
 def is_ready_to_finish(session):
     for key, value in session.items():
-        if key == 'message':
+        if key == 'message' or key == 'contact':
             continue
         if value is None:
             return False
@@ -165,7 +165,8 @@ options_to_text = {'title': 'заголовок',
                    'hashtags': 'хештеги',
                    'price': 'цена',
                    'description': 'описание',
-                   'images': 'картинки'}
+                   'images': 'картинки',
+                   'contact': 'контактная информация'}
 
 
 def get_missing_values(session):
