@@ -53,7 +53,8 @@ def get_session(conn, chat_id):
                 'description': row[4],
                 'step': row[5],
                 'images': images,
-                'message': row[6]}
+                'message': row[6],
+                'contact': row[7]}
     else:
         return None
 
@@ -274,6 +275,14 @@ def add_image(conn, chat_id, file_path, *args):
         [{'text': 'Я добавил все картинки, перейти дальше'}]], 'resize_keyboard': True})
 
 
+def set_contact_info(conn, chat_id, contact_info):
+    cur = conn.cursor()
+    cur.execute("INSERT OR REPLACE INTO stock_sessions SET step = '/price', contact = '" + contact_info.replace('\'',
+                                                                                                                '\'\'') + "' WHERE chat_id = " + str(
+        chat_id))
+    send_message(chat_id, 'Контактная информация добавлена, дальше цена. Сколько ты за это хочешь?', reply_markup=remove_markup)
+
+
 options = {'/title': (ask_for_title, set_title),
            '/hashtags': (ask_for_hashtags, toggle_hashtag),
            '/price': (ask_for_price, set_price),
@@ -281,7 +290,8 @@ options = {'/title': (ask_for_title, set_title),
            '/images': (ask_for_images, add_image),
            '/finish': (build_telegraph_and_return_link, None),  # some crutches here, nvm
            '/help': send_available_options,
-           '/ready': (None)}  # TODO show preview and submit buttons on this stem
+           '/ready': (None),
+           '/username': (None, set_contact_info)}
 
 
 def send_message(chat_id, ans, reply_markup=None):
@@ -301,6 +311,7 @@ def is_any_hashtag_present(conn, chat_id):
         if tag[0] == green_check_mark:
             return True
     return False
+
 
 @app.before_request
 def before_request():
@@ -350,9 +361,14 @@ def main():
             return Response('Duck says meow')
         elif session['step'] == '/images' and 'text' in data['message'] and data['message'][
             'text'] == 'Я добавил все картинки, перейти дальше':
-            update_session_step(conn, chat_id, '/price')
-            send_message(chat_id, 'Такс, и сколько ты за это хочешь?',
-                         reply_markup=remove_markup)
+            if 'username' not in data['message']['from']:
+                update_session_step(conn, chat_id, '/username')
+                send_message(chat_id, 'У тебя нет юзернейма в телеграмме, как нам с тобой связаться?',
+                             reply_markup=remove_markup)
+            else:
+                update_session_step(conn, chat_id, '/price')
+                send_message(chat_id, 'Такс, и сколько ты за это хочешь?',
+                             reply_markup=remove_markup)
         elif session['step'] == '/images' and 'document' not in data['message']:
             raise Exception('No image supplied on image step')
         elif session['step'] == '/hashtags' and 'text' in data['message'] and data['message']['text'] == 'Готово':

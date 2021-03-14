@@ -8,7 +8,8 @@ create table stock_sessions
     price REAL,
     description TEXT,
     step TEXT not null,
-    message TEXT
+    message TEXT,
+    contact TEXT
 );
 
 create table images
