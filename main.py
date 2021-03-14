@@ -138,6 +138,7 @@ def build_telegraph_and_return_link(conn, chat_id, return_back, *args):
         username = ''
     html_content = images_content + '<p>Цена: ' + price + '</p>\n<p>' + session[
         'description'] + '</p>\n<p>' + username + '</p>'
+    telegraph.create_account(short_name='Барахолка')
     response = telegraph.create_page(session['title'], html_content=html_content)
     response_message = response['url'] + '\n' + ' '.join([x[1:] for x in session['hashtags'].split(' ') if
                                                           x[0] == green_check_mark]) + '\n' + username
