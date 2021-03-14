@@ -135,6 +135,7 @@ def build_telegraph_and_return_link(conn, chat_id, return_back, *args):
     else:
         price = str(session['price'])
     if 'username' in args:
+        print(args)
         contact_info = 'Телеграмм: @' + str(args['username'])
     else:
         contact_info = 'Контактная информация: ' + session['contact']
