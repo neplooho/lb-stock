@@ -10,7 +10,6 @@ from telegraph import Telegraph
 
 BUFFER_SIZE = 1
 telegraph = Telegraph()
-telegraph.create_account(short_name='Барахолка')
 app = Flask(__name__)
 BOT_URL = 'https://api.telegram.org/bot{0}/'.format(open('secrets/bot_token', 'r').read()[:-1])
 FILE_URL = 'https://api.telegram.org/file/bot{0}/'.format(open('secrets/bot_token', 'r').read()[:-1])
@@ -357,7 +356,6 @@ def main():
         elif session['step'] == '/images' and 'document' not in data['message']:
             raise Exception('No image supplied on image step')
         elif session['step'] == '/hashtags' and 'text' in data['message'] and data['message']['text'] == 'Готово':
-            # todo check if at leas one hashtag is active
             if is_any_hashtag_present(conn, chat_id):
                 update_session_step(conn, chat_id, '/ready')
                 send_message(chat_id, "Готово!", reply_markup={'one_time_keyboard': True, 'keyboard': [
