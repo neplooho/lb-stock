@@ -134,7 +134,7 @@ def build_telegraph_and_return_link(conn, chat_id, return_back, *args):
         price = session['price'].split('.')[0]
     else:
         price = str(session['price'])
-    if args[0] is not None:
+    if not args:
         contact_info = 'Телеграмм: @' + str(args[0])
     else:
         print(session['contact'])
