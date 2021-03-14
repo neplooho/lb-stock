@@ -403,7 +403,7 @@ def main():
         return Response('Duck says meow')
     except Exception as e:
         # f.write(str(e) + '\n')
-        print(e)
+        print(e.with_traceback())
         send_message(chat_id, "Ты что-то не то отправил, попробуй ещё раз или вызови /help")
         return Response("Quack")
     finally:
