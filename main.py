@@ -277,7 +277,7 @@ def add_image(conn, chat_id, file_path, *args):
 
 def set_contact_info(conn, chat_id, contact_info):
     cur = conn.cursor()
-    cur.execute("INSERT OR REPLACE INTO stock_sessions SET step = '/price', contact = '" + contact_info.replace('\'',
+    cur.execute("UPDATE stock_sessions SET step = '/price', contact = '" + contact_info.replace('\'',
                                                                                                                 '\'\'') + "' WHERE chat_id = " + str(
         chat_id))
     send_message(chat_id, 'Контактная информация добавлена, дальше цена. Сколько ты за это хочешь?', reply_markup=remove_markup)
