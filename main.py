@@ -325,6 +325,8 @@ def before_request():
 def main():
     conn = create_connection(database_path)
     data = request.get_json()
+    if 'message' not in data:
+        return Response("Duck says meow")
     chat_id = int(data['message']['chat']['id'])
     if chat_id == admin_chat_id:
         conn.close()
@@ -400,7 +402,7 @@ def main():
         conn.commit()
         return Response('Duck says meow')
     except Exception as e:
-        # print(e.with_traceback())
+        print(e.with_traceback())
         send_message(chat_id, "Ты что-то не то отправил, попробуй ещё раз или вызови /help")
         return Response("Quack")
     finally:
