@@ -9,7 +9,7 @@ telegraph.create_account(short_name='Барахолка')
 # response = telegraph.create_page(title='Title', content=[{"tag": "p", "children":["Hello,+world!"]}])
 
 with open('business.jpg', 'rb') as f:
-    with open('git.png', 'rb') as g:
+    with open('surf.jpg', 'rb') as g:
         # print(type(f))
         # print(type(g))
         paths = [x['src'] for x in requests.post('https://telegra.ph/upload', files={'1':('file', f, 'image/jpeg'),

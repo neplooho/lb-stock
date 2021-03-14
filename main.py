@@ -125,9 +125,7 @@ def build_telegraph_and_return_link(conn, chat_id, return_back, *args):
         return
     links_to_download = [FILE_URL + x for x in session['images']]
     image_binaries = [requests.get(x).content for x in links_to_download]
-    paths = [x['src'] for x in requests.post('https://telegra.ph/upload',
-                                             files={str(k): ('file', v, 'image/jpeg') for k, v in
-                                                    enumerate(image_binaries)}).json()]
+    paths = [x['src'] for x in requests.post('https://telegra.ph/upload', files={str(k): ('file', v, 'image/jpeg') for k, v in enumerate(image_binaries)}).json()]
     images_content = '\n'.join(["<img src = '{}' />".format(x) for x in paths])
     if session['price'].split('.')[1] == '00':
         price = session['price'].split('.')[0]
