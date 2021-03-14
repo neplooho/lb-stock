@@ -134,8 +134,8 @@ def build_telegraph_and_return_link(conn, chat_id, return_back, *args):
         price = session['price'].split('.')[0]
     else:
         price = str(session['price'])
-    if 'username' in args:
-        contact_info = 'Телеграмм: @' + str(args['username'])
+    if args[0] is not None:
+        contact_info = 'Телеграмм: @' + str(args[0])
     else:
         print(session['contact'])
         contact_info = 'Контактная информация: ' + session['contact']
@@ -387,10 +387,10 @@ def main():
             create_session(conn, chat_id)
             send_message(chat_id, 'Какой будет заголовок?')
         elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Посмотреть':
-            build_telegraph_and_return_link(conn, chat_id, True, data['message']['from'])
+            build_telegraph_and_return_link(conn, chat_id, True, data['message']['from']['username'])
         elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Отправить':
             if session['message'] is None:
-                build_telegraph_and_return_link(conn, chat_id, False, data['message']['from'])
+                build_telegraph_and_return_link(conn, chat_id, False, data['message']['from']['username'])
             session = get_session(conn, chat_id)
             send_message(admin_chat_id, session['message'])
             send_message(chat_id, "Отправлено на рассмотрение, чтобы создать новое тыкни /new",
