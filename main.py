@@ -20,7 +20,6 @@ possible_hashtags = set(
 green_check_mark = '✅'
 red_x = '❌'
 remove_markup = {'remove_keyboard': True}
-f = open("messages.txt", "a", buffering=BUFFER_SIZE)
 admin_chat_id = -1001458437695
 help_message = """Как со мной общаться? Тыкаешь /new а дальше я сам у тебя буду спрашивать всё что мне нужно
 Примечания: 
@@ -401,8 +400,7 @@ def main():
         conn.commit()
         return Response('Duck says meow')
     except Exception as e:
-        # f.write(str(e) + '\n')
-        print(e.with_traceback())
+        # print(e.with_traceback())
         send_message(chat_id, "Ты что-то не то отправил, попробуй ещё раз или вызови /help")
         return Response("Quack")
     finally:
