@@ -370,8 +370,7 @@ def main():
                 send_message(chat_id, 'Такс, и сколько ты за это хочешь?',
                              reply_markup=remove_markup)
         elif session['step'] == '/images' and 'document' not in data['message']:
-            send_message(chat_id, "Мэн, грузи файлами а не картинками. В телеге есть опция отправить как файл без сжатия", reply_markup={'one_time_keyboard': True, 'keyboard': [
-                [{'text': 'Я добавил все картинки, перейти дальше'}]], 'resize_keyboard': True})
+            send_message(chat_id, "Мэн, грузи файлами а не картинками. В телеге есть опция отправить как файл без сжатия")
             raise Exception('No image supplied on image step')
         elif session['step'] == '/hashtags' and 'text' in data['message'] and data['message']['text'] == 'Готово':
             if is_any_hashtag_present(conn, chat_id):
