@@ -135,14 +135,14 @@ def build_telegraph_and_return_link(conn, chat_id, return_back, *args):
     else:
         price = str(session['price'])
     if 'username' in args:
-        username = '@' + str(args['username'])
+        contact_info = 'Телеграмм: @' + str(args['username'])
     else:
-        username = ''
+        contact_info = 'Контактная информация: ' + session['contact']
     html_content = images_content + '<p>Цена: ' + price + '</p>\n<p>' + session[
-        'description'] + '</p>\n<p>' + username + '</p>'
+        'description'] + '</p>\n<p>' + contact_info + '</p>'
     response = telegraph.create_page(session['title'], html_content=html_content)
     response_message = response['url'] + '\n' + ' '.join([x[1:] for x in session['hashtags'].split(' ') if
-                                                          x[0] == green_check_mark]) + '\n' + username
+                                                          x[0] == green_check_mark]) + '\n' + contact_info
     set_message(conn, chat_id, response_message)
     if return_back:
         send_message(chat_id, response_message,
