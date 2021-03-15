@@ -369,12 +369,12 @@ def main():
             conn.close()
             return Response('Duck says meow')
         elif session['step'] == '/images' and 'photo' in data['message']:
-            for photo in data['message']['photo']:
-                if is_more_than_5mb(photo['file_size']):
-                    send_message(chat_id, "Картинка больше 5мб")
-                file_path = requests.get(BOT_URL + 'getFile?file_id=' + photo['file_id']).json()['result']['file_path']
-                add_image(conn, chat_id, file_path)
-                conn.commit()
+            photo = data['message']['photo'][0]
+            if is_more_than_5mb(photo['file_size']):
+                send_message(chat_id, "Картинка больше 5мб")
+            file_path = requests.get(BOT_URL + 'getFile?file_id=' + photo['file_id']).json()['result']['file_path']
+            add_image(conn, chat_id, file_path)
+            conn.commit()
             return Response('Duck says meow')
         elif session['step'] == '/images' and 'text' in data['message'] and data['message'][
             'text'] == 'Я добавил все картинки, перейти дальше':
