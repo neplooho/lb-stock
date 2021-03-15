@@ -368,6 +368,15 @@ def main():
             conn.commit()
             conn.close()
             return Response('Duck says meow')
+        elif session['step'] == '/images' and 'photo' in data['message']:
+            for photo in data['message']['photo']:
+                if is_more_than_5mb(photo['file_size']):
+                    send_message(chat_id, "Картинка больше 5мб")
+                file_path = requests.get(BOT_URL + 'getFile?file_id=' + photo['file_id']).json()['result']['file_path']
+                add_image(conn, chat_id, file_path)
+                conn.commit()
+                conn.close()
+            return Response('Duck says meow')
         elif session['step'] == '/images' and 'text' in data['message'] and data['message'][
             'text'] == 'Я добавил все картинки, перейти дальше':
             if 'username' not in data['message']['from']:
@@ -378,9 +387,10 @@ def main():
                 update_session_step(conn, chat_id, '/price')
                 send_message(chat_id, 'Такс, и сколько ты за это хочешь?',
                              reply_markup=remove_markup)
-        elif session['step'] == '/images' and 'document' not in data['message']:
-            send_message(chat_id, "Мэн, грузи файлами а не картинками. В телеге есть опция отправить как файл без сжатия")
-            raise Exception('No image supplied on image step')
+        elif session['step'] == '/images':
+            if 'document' not in data['message'] and 'photo' not in data['message']:
+                send_message(chat_id, "Мне нужны картинки")
+                raise Exception('No image supplied on image step')
         elif session['step'] == '/hashtags' and 'text' in data['message'] and data['message']['text'] == 'Готово':
             if is_any_hashtag_present(conn, chat_id):
                 update_session_step(conn, chat_id, '/ready')
