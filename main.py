@@ -262,7 +262,7 @@ def set_description(conn, chat_id, description, *args):
     cur.execute("UPDATE stock_sessions SET step = '/images', description = '" + description.replace('\'',
                                                                                                     '\'\'') + "' WHERE chat_id = " + str(
         chat_id))
-    send_message(chat_id, "Отличное описание.\nТеперь картинки. Учти что я могу обработать картинки если это сжатые картинки, НО \n"
+    send_message(chat_id, "Отличное описание. Теперь картинки.\nУчти что я могу обработать картинки если это сжатые картинки, НО \n"
                           "лучше отправь файлами, без сжатия. (до 5мб каждый файл)", reply_markup=remove_markup)
     send_message(chat_id, "Я серьёзно, лучше грузи файлами а то прийдётся по новой проходить все шаги", reply_markup=remove_markup)
 
