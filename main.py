@@ -356,6 +356,7 @@ def main():
             return Response('Duck says meow')
         if session['step'] == '/images' and 'document' in data['message']:
             file_id = data['message']['document']['file_id']
+            print(data['message']['document']['file_size'])
             file_path = requests.get(BOT_URL + 'getFile?file_id=' + file_id).json()['result']['file_path']
             add_image(conn, chat_id, file_path)
             conn.commit()
