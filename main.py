@@ -250,7 +250,7 @@ def set_price(conn, chat_id, price, *args):
             "UPDATE stock_sessions SET step = '/hashtags', price = " + price + " WHERE chat_id = " + str(chat_id))
     except Exception as e:
         print(type(e))
-        send_message(chat_id, 'Не получилось сохранить цену, отправь ещё раз. Вот пример: 840.00',
+        send_message(chat_id, 'Не получилось сохранить цену, отправь ещё раз.\n Вот пример: 840.00',
                      reply_markup=remove_markup)
         return
     send_message(chat_id, 'Цена сохранена, выбери хештеги',
@@ -262,7 +262,8 @@ def set_description(conn, chat_id, description, *args):
     cur.execute("UPDATE stock_sessions SET step = '/images', description = '" + description.replace('\'',
                                                                                                     '\'\'') + "' WHERE chat_id = " + str(
         chat_id))
-    send_message(chat_id, "Отличное описание, выгрузи теперь картинки файлами", reply_markup=remove_markup)
+    send_message(chat_id, "Отличное описание.\n Теперь картинки. Учти что я могу обработать картинки если это сжатые картинки, НО \n"
+                          "лучше отправь файлами, без сжатия. (до 5мб каждый файл)", reply_markup=remove_markup)
 
 
 def add_image(conn, chat_id, file_path, *args):
@@ -355,7 +356,7 @@ def main():
             return Response('Duck says meow')
         session = get_session(conn, chat_id)
         if session is None:
-            send_message(chat_id, "Сначала создайте новое объявление с помощью /new", reply_markup=remove_markup)
+            send_message(chat_id, "Сначала создайте новое объявление с помощью \n/new", reply_markup=remove_markup)
             conn.close()
             return Response('Duck says meow')
         if session['step'] == '/images' and 'document' in data['message']:
