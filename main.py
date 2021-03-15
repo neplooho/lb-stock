@@ -331,6 +331,7 @@ def main():
         return Response("Duck says meow")
     try:
         if 'text' in data['message'] and data['message']['text'] == '/start':
+            clear_session(conn, chat_id)
             create_session(conn, chat_id)
             send_message(chat_id, "Какой будет заголовок?", reply_markup=remove_markup)
             conn.commit()
@@ -342,6 +343,7 @@ def main():
             return Response('Duck says meow')
 
         elif 'text' in data['message'] and data['message']['text'] == '/new':
+            clear_session(conn, chat_id)
             create_session(conn, chat_id)
             send_message(chat_id, "Какой будет заголовок?", reply_markup=remove_markup)
             conn.commit()
