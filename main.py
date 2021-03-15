@@ -375,7 +375,6 @@ def main():
                 file_path = requests.get(BOT_URL + 'getFile?file_id=' + photo['file_id']).json()['result']['file_path']
                 add_image(conn, chat_id, file_path)
                 conn.commit()
-                conn.close()
             return Response('Duck says meow')
         elif session['step'] == '/images' and 'text' in data['message'] and data['message'][
             'text'] == 'Я добавил все картинки, перейти дальше':
