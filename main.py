@@ -311,6 +311,10 @@ def is_any_hashtag_present(conn, chat_id):
     return False
 
 
+def is_more_than_5mb(bytes):
+    return bytes * (10**-6) > 5
+
+
 @app.before_request
 def before_request():
     if request.url.startswith('http://'):
@@ -355,8 +359,10 @@ def main():
             conn.close()
             return Response('Duck says meow')
         if session['step'] == '/images' and 'document' in data['message']:
+            if is_more_than_5mb(data['message']['document']['file_size']):
+                send_message(chat_id, "Нужно что-то меньше 5 мегабайт")
+                return Response('Duck says meow')
             file_id = data['message']['document']['file_id']
-            print(data['message']['document']['file_size'])
             file_path = requests.get(BOT_URL + 'getFile?file_id=' + file_id).json()['result']['file_path']
             add_image(conn, chat_id, file_path)
             conn.commit()
