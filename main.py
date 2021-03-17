@@ -32,7 +32,7 @@ help_message = """Как со мной общаться? Тыкаешь /new а 
 def create_connection(db_file):
     conn = None
     try:
-        conn = sqlite3.connect(db_file)
+        conn = sqlite3.connect(db_file, check_same_thread=False)
     except Error as e:
         print(e)
     return conn
@@ -340,7 +340,6 @@ def main():
         return Response("Duck says meow")
     chat_id = int(data['message']['chat']['id'])
     if chat_id == admin_chat_id:
-        # conn.close()
         return Response("Duck says meow")
     try:
         if 'text' in data['message'] and data['message']['text'] == '/start':
@@ -348,24 +347,19 @@ def main():
             create_session(conn, chat_id)
             send_message(chat_id, "Какой будет заголовок?", reply_markup=remove_markup)
             conn.commit()
-            # conn.close()
             return Response('Duck says meow')
         if 'text' in data['message'] and data['message']['text'] == '/help':
             send_message(chat_id, help_message)
-            # conn.close()
             return Response('Duck says meow')
-
         elif 'text' in data['message'] and data['message']['text'] == '/new':
             clear_session(conn, chat_id)
             create_session(conn, chat_id)
             send_message(chat_id, "Какой будет заголовок?", reply_markup=remove_markup)
             conn.commit()
-            # conn.close()
             return Response('Duck says meow')
         session = get_session(conn, chat_id)
         if session is None:
             send_message(chat_id, "Сначала создайте новое объявление с помощью \n/new", reply_markup=remove_markup)
-            # conn.close()
             return Response('Duck says meow')
         if session['step'] == '/images' and 'document' in data['message']:
             if is_more_than_5mb(data['message']['document']['file_size']):
@@ -375,7 +369,6 @@ def main():
             file_path = requests.get(BOT_URL + 'getFile?file_id=' + file_id).json()['result']['file_path']
             add_image(conn, chat_id, file_path)
             conn.commit()
-            # conn.close()
             return Response('Duck says meow')
         elif session['step'] == '/images' and 'photo' in data['message']:
             photo = data['message']['photo'][0]
@@ -431,11 +424,10 @@ def main():
         # print(e)
         send_message(chat_id, "Ты что-то не то отправил, попробуй ещё раз или вызови /help")
         return Response("Quack")
-    # finally:
-    #     conn.close()
 
 
 if __name__ == '__main__':
     conn = create_connection(database_path)
-    # app.run(ssl_context=('secrets/public.pem', 'secrets/private.key'), host='0.0.0.0', port=8443)
-    app.run(host='0.0.0.0', port=8443)
+    atexit.register(OnExitApp, conn=conn)
+    app.run(ssl_context=('secrets/public.pem', 'secrets/private.key'), host='0.0.0.0', port=8443)
+    # app.run(host='0.0.0.0', port=8443)
