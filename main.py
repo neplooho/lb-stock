@@ -404,7 +404,7 @@ def main():
         elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Создать заново':
             clear_session(conn, chat_id)
             create_session(conn, chat_id)
-            send_message(chat_id, 'Какой будет заголовок?')
+            send_message(chat_id, 'Какой будет заголовок?', reply_markup=remove_markup)
         elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Посмотреть':
             build_telegraph_and_return_link(conn, chat_id, True, data['message'])
         elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Отправить':
