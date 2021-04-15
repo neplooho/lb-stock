@@ -79,7 +79,7 @@ def create_session(conn, chat_id, *args):
     cur = conn.cursor()
     default_tags = ' '.join([red_x + x for x in possible_hashtags])
     cur.execute(
-        "INSERT OR REPLACE INTO stock_sessions (chat_id, step, hashtags) VALUES ({}, '/title', '".format(
+        "INSERT OR REPLACE INTO stock_sessions (chat_id, step, hashtags) VALUES ({}, '/new', '".format(
             chat_id) + default_tags + "');")
 
 
@@ -139,8 +139,8 @@ def build_telegraph_and_return_link(conn, chat_id, return_back, *args):
     html_content = images_content + '<p>Цена: ' + price + '</p>\n<p>' + session[
         'description'] + '</p>\n<p>' + contact_info + '</p>'
     response = telegraph.create_page(session['title'], html_content=html_content)
-    response_message = response['url'] + '\n' + ' '.join([x[1:] for x in session['hashtags'].split(' ') if
-                                                          x[0] == green_check_mark]) + '\n' + contact_info
+    response_message = '#лбкиїв_продам\n' + response['url'] + '\n' + ' '.join([x[1:] for x in session['hashtags'].split(' ') if
+                                                                               x[0] == green_check_mark]) + '\n' + contact_info
     set_message(conn, chat_id, response_message)
     if return_back:
         send_message(chat_id, response_message,
@@ -281,10 +281,19 @@ def add_image(conn, chat_id, file_path, *args):
 def set_contact_info(conn, chat_id, contact_info):
     cur = conn.cursor()
     cur.execute("UPDATE stock_sessions SET step = '/price', contact = '" + contact_info.replace('\'',
-                                                                                                                '\'\'') + "' WHERE chat_id = " + str(
+                                                                                                '\'\'') + "' WHERE chat_id = " + str(
         chat_id))
     send_message(chat_id, 'Контактная информация добавлена, дальше цена. Сколько ты за это хочешь?', reply_markup=remove_markup)
+def set_contact_buy(conn, chat_id, contact_info):
+    cur = conn.cursor()
+    cur.execute("UPDATE stock_sessions SET contact = '" + contact_info.replace('\'',
+                                                                               '\'\'') + "' WHERE chat_id = " + str(chat_id))
 
+def set_buy_message(conn, chat_id, sell_message):
+    cur = conn.cursor()
+    cur.execute("UPDATE stock_sessions SET message = '" + sell_message.replace('\'',
+                                                                               '\'\'') + "' WHERE chat_id = " + str(
+        chat_id))
 
 options = {'/title': (ask_for_title, set_title),
            '/hashtags': (ask_for_hashtags, toggle_hashtag),
@@ -292,8 +301,11 @@ options = {'/title': (ask_for_title, set_title),
            '/description': (ask_for_description, set_description),
            '/images': (ask_for_images, add_image),
            '/finish': (build_telegraph_and_return_link, None),  # some crutches here, nvm
+           '/buy-message': (None, set_buy_message),
            '/help': send_available_options,
            '/ready': (None),
+           '/ready-buy': (None),
+           '/buy-username': (None),
            '/username': (None, set_contact_info)}
 
 
@@ -325,12 +337,17 @@ def OnExitApp(conn):
     conn.close()
     print("Closed")
 
-# @app.before_request
-# def before_request():
-#     if request.url.startswith('http://'):
-#         url = request.url.replace('http://', 'https://', 1)
-#         code = 301
-#         return redirect(url, code=code)
+def build_buy_message(conn, chat_id):
+    session = get_session(conn, chat_id)
+    result = '#лбкиїв_куплю\n' + session['message'] + '\nКонтактная информация: ' + session['contact']
+    return result
+
+@app.before_request
+def before_request():
+    if request.url.startswith('http://'):
+        url = request.url.replace('http://', 'https://', 1)
+        code = 301
+        return redirect(url, code=code)
 
 
 @app.route('/', methods=['POST'])
@@ -348,16 +365,29 @@ def main():
             send_message(chat_id, "Какой будет заголовок?", reply_markup=remove_markup)
             conn.commit()
             return Response('Duck says meow')
+        session = get_session(conn, chat_id)
         if 'text' in data['message'] and data['message']['text'] == '/help':
             send_message(chat_id, help_message)
             return Response('Duck says meow')
         elif 'text' in data['message'] and data['message']['text'] == '/new':
             clear_session(conn, chat_id)
             create_session(conn, chat_id)
+            send_message(chat_id, "Продаёшь или хочешь что-то найти?", reply_markup={'one_time_keyboard': True, 'keyboard': [
+                [{'text': 'Продаю'}, {'text': 'Ищу'}]], 'resize_keyboard': True})
+            conn.commit()
+            return Response('Duck says meow')
+        elif session['step'] == '/new' and 'text' in data['message'] and data['message'][
+            'text'] == 'Продаю':
+            update_session_step(conn, chat_id, '/title')
             send_message(chat_id, "Какой будет заголовок?", reply_markup=remove_markup)
             conn.commit()
             return Response('Duck says meow')
-        session = get_session(conn, chat_id)
+        elif session['step'] == '/new' and 'text' in data['message'] and data['message'][
+            'text'] == 'Ищу':
+            update_session_step(conn, chat_id, '/buy-message')
+            send_message(chat_id, "Что ищешь? Давай просто текстом в одном сообщении", reply_markup=remove_markup)
+            conn.commit()
+            return Response('Duck says meow')
         if session is None:
             send_message(chat_id, "Сначала создайте новое объявление с помощью \n/new", reply_markup=remove_markup)
             return Response('Duck says meow')
@@ -401,10 +431,11 @@ def main():
                 existing_tags = get_session(conn, chat_id)['hashtags'].split(' ')
                 send_message(chat_id, "Выбери хотя бы один хештег",
                              reply_markup=get_hashtags_markup(conn, chat_id, existing_tags))
-        elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Создать заново':
+        elif (session['step'] == '/ready' or session['step'] == '/ready-buy') and 'text' in data['message'] and data['message']['text'] == 'Создать заново':
             clear_session(conn, chat_id)
             create_session(conn, chat_id)
-            send_message(chat_id, 'Какой будет заголовок?', reply_markup=remove_markup)
+            send_message(chat_id, "Продаёшь или хочешь что-то найти?", reply_markup={'one_time_keyboard': True, 'keyboard': [
+                [{'text': 'Продаю'}, {'text': 'Ищу'}]], 'resize_keyboard': True})
         elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Посмотреть':
             build_telegraph_and_return_link(conn, chat_id, True, data['message'])
         elif session['step'] == '/ready' and 'text' in data['message'] and data['message']['text'] == 'Отправить':
@@ -416,12 +447,47 @@ def main():
                          reply_markup={'one_time_keyboard': True, 'keyboard': [
                              [{'text': '/new'}]], 'resize_keyboard': True})
             clear_session(conn, chat_id)
+            create_session(conn, chat_id)
+        elif session['step'] == '/buy-message' and 'text' in data['message']:
+            set_buy_message(conn, chat_id, data['message']['text'])
+            send_message(chat_id, "Сообщение о поиске сохранено", reply_markup=remove_markup)
+            if 'username' not in data['message']['from']:
+                update_session_step(conn, chat_id, '/buy-username')
+                send_message(chat_id, 'У тебя нет юзернейма в телеграмме, как нам с тобой связаться?',
+                             reply_markup=remove_markup)
+            else:
+                set_contact_buy(conn, chat_id, 'Телеграмм: ' + data['message']['from']['username'])
+                update_session_step(conn, chat_id, '/ready-buy')
+                send_message(chat_id, 'Готово!', reply_markup={'one_time_keyboard': True, 'keyboard': [
+                    [{'text': 'Посмотреть'}, {'text': 'Отправить'}]], 'resize_keyboard': True})
+            return Response('Duck says meow')
+        elif session['step'] == '/buy-username' and 'text' in data['message']:
+            set_contact_buy(conn, chat_id, contact_info=data['message']['text'])
+            update_session_step(conn, chat_id, '/ready-buy')
+            send_message(chat_id, 'Контактная информация добавлена. Это всё что мне от тебя нужно, глянешь или сразу отправишь на рассмотрение?', reply_markup={'one_time_keyboard': True, 'keyboard': [
+                [{'text': 'Посмотреть'}, {'text': 'Отправить'}]], 'resize_keyboard': True})
+        elif session['step'] == '/ready-buy' and 'text' in data['message'] and data['message']['text'] == 'Посмотреть':
+            message = build_buy_message(conn, chat_id)
+            set_message(conn, chat_id, message)
+            send_message(chat_id, message, reply_markup={'one_time_keyboard': True, 'keyboard': [
+                [{'text': 'Создать заново'}, {'text': 'Отправить'}]], 'resize_keyboard': True})
+        elif session['step'] == '/ready-buy' and 'text' in data['message'] and data['message']['text'] == 'Отправить':
+            if session['message'] is None:
+                session['message'] = build_buy_message(conn, chat_id)
+            session = get_session(conn, chat_id)
+            send_message(admin_chat_id, session['message'])
+            send_message(chat_id, "Отправлено на рассмотрение, чтобы создать новое тыкни /new",
+                         reply_markup={'one_time_keyboard': True, 'keyboard': [
+                             [{'text': '/new'}]], 'resize_keyboard': True})
+            clear_session(conn, chat_id)
+            create_session(conn, chat_id)
         else:
+            print("I am calling options")
             options[session['step']][1](conn, chat_id, data['message']['text'])
         conn.commit()
         return Response('Duck says meow')
     except Exception as e:
-        # print(e)
+        print(e)
         send_message(chat_id, "Ты что-то не то отправил, попробуй ещё раз или вызови /help")
         return Response("Quack")
 
@@ -429,5 +495,5 @@ def main():
 if __name__ == '__main__':
     conn = create_connection(database_path)
     atexit.register(OnExitApp, conn=conn)
-    app.run(ssl_context=('secrets/public.pem', 'secrets/private.key'), host='0.0.0.0', port=8443)
+    app.run(ssl_context=('secrets/lb-pi.pem', 'secrets/lb-pi.key'), host='0.0.0.0', port=8448)
     # app.run(host='0.0.0.0', port=8443)

@@ -5,3 +5,6 @@ secrets
 database/db.sqlite
 *.jpg
 git.png
+/database/db.sqlite-journal
+__pycache__/
+build/
