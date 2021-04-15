@@ -456,7 +456,7 @@ def main():
                 send_message(chat_id, 'У тебя нет юзернейма в телеграмме, как нам с тобой связаться?',
                              reply_markup=remove_markup)
             else:
-                set_contact_buy(conn, chat_id, 'Телеграмм: ' + data['message']['from']['username'])
+                set_contact_buy(conn, chat_id, 'Телеграмм: @' + data['message']['from']['username'])
                 update_session_step(conn, chat_id, '/ready-buy')
                 send_message(chat_id, 'Готово!', reply_markup={'one_time_keyboard': True, 'keyboard': [
                     [{'text': 'Посмотреть'}, {'text': 'Отправить'}]], 'resize_keyboard': True})
@@ -482,7 +482,7 @@ def main():
             clear_session(conn, chat_id)
             create_session(conn, chat_id)
         else:
-            print("I am calling options")
+            # print("I am calling options")
             options[session['step']][1](conn, chat_id, data['message']['text'])
         conn.commit()
         return Response('Duck says meow')
