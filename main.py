@@ -362,7 +362,8 @@ def main():
         if 'text' in data['message'] and data['message']['text'] == '/start':
             clear_session(conn, chat_id)
             create_session(conn, chat_id)
-            send_message(chat_id, "Какой будет заголовок?", reply_markup=remove_markup)
+            send_message(chat_id, "Продаёшь или хочешь что-то найти?", reply_markup={'one_time_keyboard': True, 'keyboard': [
+                [{'text': 'Продаю'}, {'text': 'Ищу'}]], 'resize_keyboard': True})
             conn.commit()
             return Response('Duck says meow')
         session = get_session(conn, chat_id)
