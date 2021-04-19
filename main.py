@@ -473,9 +473,7 @@ def main():
             send_message(chat_id, message, reply_markup={'one_time_keyboard': True, 'keyboard': [
                 [{'text': 'Создать заново'}, {'text': 'Отправить'}]], 'resize_keyboard': True})
         elif session['step'] == '/ready-buy' and 'text' in data['message'] and data['message']['text'] == 'Отправить':
-            if session['message'] is None:
-                session['message'] = build_buy_message(conn, chat_id)
-            session = get_session(conn, chat_id)
+            session['message'] = build_buy_message(conn, chat_id)
             send_message(admin_chat_id, session['message'])
             send_message(chat_id, "Отправлено на рассмотрение, чтобы создать новое тыкни /new",
                          reply_markup={'one_time_keyboard': True, 'keyboard': [
