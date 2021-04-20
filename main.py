@@ -133,7 +133,7 @@ def build_telegraph_and_return_link(conn, chat_id, return_back, *args):
     else:
         price = str(session['price'])
     if 'username' in args[0]['from']:
-        contact_info = 'Телеграмм: @' + str(args[0]['from']['username'])
+        contact_info = 'Телеграмм: https://t.me/' + str(args[0]['from']['username'])
     else:
         contact_info = 'Контактная информация: ' + session['contact']
     html_content = images_content + '<p>Цена: ' + price + '</p>\n<p>' + session[
@@ -457,7 +457,7 @@ def main():
                 send_message(chat_id, 'У тебя нет юзернейма в телеграмме, как нам с тобой связаться?',
                              reply_markup=remove_markup)
             else:
-                set_contact_buy(conn, chat_id, 'Телеграмм: @' + data['message']['from']['username'])
+                set_contact_buy(conn, chat_id, 'Телеграмм: https://t.me/' + data['message']['from']['username'])
                 update_session_step(conn, chat_id, '/ready-buy')
                 send_message(chat_id, 'Готово!', reply_markup={'one_time_keyboard': True, 'keyboard': [
                     [{'text': 'Посмотреть'}, {'text': 'Отправить'}]], 'resize_keyboard': True})
